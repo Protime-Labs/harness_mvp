@@ -283,3 +283,44 @@ W0 Evaluation Orchestration ──drives──▶ W3/W4/W5/W6 (harnesses) ──
 | W9 Remediation | ✔ |  |  | ✔ |  |  |  |  |  | ✔ |  |  |  |  |  | ✔ |
 
 Every architectural requirement (R1–R9, A1–A10) is satisfied by at least one workflow; the full traceability — including the G1–G14 config gaps — is proven in `enterprise_harness_architecture_review.md`.
+
+---
+
+## W-A / W-B — Front-door agents (reconciliation with the visuals)
+
+The visuals put an agentic **Source Agent → Security Agent** pair *before* Sandbox Eval, each closing a **fixed gate**. These are the agentic forms of Discovery (§6.1) and Quarantine (§6.3). They obey A1: the *agent* discovers/scans; the *gate* decision is deterministic.
+
+### W-A — Source Agent (discover & register)
+- **Intent:** discover harnesses/models/assets from sources, register with provenance, attach early risk hints.
+- **Plane:** mixed — agent discovers; rules admit.
+- **Agents & tools:** AG-SRC (reads sources: Hosted LLM / Databricks / Anthropic / Prisma AIRS / Open-Source / AT&T / Janus / Internal AIRS / Cisco), computes asset key (G7), SHA-256 hash. Read-only.
+- **Orchestration:** `discover → dedupe (asset_key) → register asset_version + provenance → risk hints → [gate: Source Allowed]` (deterministic: unknown/unapproved source ⇒ hold).
+- **Output:** `assets`, `asset_versions`, `provenance_records`, discovery findings; gate `Source Allowed ∈ {allow, hold}`.
+- **Satisfies:** R4, R5, A1; §6.1/6.2.
+
+### W-B — Security Agent (secure before move)
+- **Intent:** block unsafe assets before any harness runs (the "safe to move downstream" gate).
+- **Plane:** mixed — agent scans; rules decide.
+- **Agents & tools:** AG-SEC runs the quarantine scanners (**SBOM · secrets · malware/model-file · license · policy · sandbox**), plus a **parallel security scan** path; normalizes to canonical Findings (G2). No judging of the target model here.
+- **Orchestration:** `materialize in isolated workspace (A6) → run scanners (parallel) → normalize findings → [gate: Security Pass]` (deterministic precedence: any blocking finding ⇒ block/manual_review).
+- **Output:** `quarantine_jobs`, `security_findings`, decision; gate `Security Pass ∈ {allow, allow_with_warning, block, manual_review}` (R9).
+- **Satisfies:** R1, R7/A6, R9, A1, A3; §6.3. **Upstream dependency of every catalogue harness** (nothing runs before Security Pass).
+
+Gate name → engine mapping: *Source Allowed* / *Security Pass* / *Eval Pass* / *Approval Gate* / *Pipeline Gate* are all **W8** instances with the fixed vocabulary; see `enterprise_harness_catalogue.md §6`.
+
+---
+
+## W-C — Harness Onboarding / Challenge (bake-off)
+
+Names the integration pipeline drawn on Page 2 of `Enterprise_harness_v1_reference_architecture.drawio` (resolves review finding V1-F3). Admits a candidate harness — **ours or a frontier vendor's** (PyRIT, Garak, Petri, NeMo, Cisco) — into the registry, in the correct lane.
+
+- **Intent:** base-functionality test → spec conformance → challenge/bake-off → registry.
+- **Plane:** control (evaluation); the candidate executes in the **data plane behind the Run Contract (R3)**.
+- **Steps & gates (all deterministic, A1/R9):**
+  1. **Base Functionality** — runs? honors Run Contract (R3)? emits `result.json` + evidence? → gate *Contract Conformance*.
+  2. **Meets Specification** — schema-valid `run_config`/`result`/`finding`; canonical Findings (G2); standards + Golden-Control tags → gate *Spec Pass*.
+  3. **Challenge / bake-off** — same targets + C1 ground-truth + judge quorum; score recall · precision · coverage · cost · reproducibility · independence (**Option A** meta-eval + **Option C** ensemble, with **Option B** independence controls) → gate *Challenge Pass = best-of-each*.
+  4. **Registry** (approved · versioned · pack-tiered) → **W2** Selection → **W8** Gate.
+- **Determinism & safety:** independence **A2/D1** (attacker ≠ judge ≠ target families); budgets **A8**; every gate deterministic.
+- **Output:** registry entry + challenge scorecard (evidence).
+- **Satisfies:** R3, R5, A1, A2, A5, A8. Feeds W2/W8.

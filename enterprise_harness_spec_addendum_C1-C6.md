@@ -236,3 +236,21 @@ The architecture is build-ready when all are true (all are design deliverables, 
 On sign-off, the first build action remains (v2 §12 order, unchanged): **SAFETY.md → the 3 contract schemas + 7 config files above → Track A tracer bullet** (Inspect task + LiteLLM mock provider + one prompt-injection scenario set with its C1 ground-truth + judge quorum → spec-compliant `result.json`, Mode-A replayable).
 
 That first slice is the functional harness producing a results file for a test evaluation case — the original goal.
+
+---
+
+## C7 — Reconciliation additions (from the harness visuals / AT&T)
+
+The visuals introduced catalogue/pack/AT&T scope (see `enterprise_harness_visuals_correlation.md`, `enterprise_harness_catalogue.md`). These extend the contracts above without changing C1–C6.
+
+**C7.1 Registry/definition fields** (extend `harness_definitions`, §6.7): add `category`, `execution_type`, `pack_tier ∈ {foundational, advanced_capability, att_context}`, `capability_tags[]` (the closed 15-tag enum — resolves **G8**), `feeds_gate`, `mvp_phase`, and a structured `depends_on` block. Canonical schema in catalogue §11.
+
+**C7.2 Capability enum (G8, closed):** `extended_reasoning, cyber_capabilities, coding, multimodal, tool_use_mcp, agentic_behavior, reliability, hallucination_resistance, adversarial_robustness, prompt_injection_resistance, data_privacy, security_controls, enterprise_integration, deployment_flexibility, open_weight_availability`.
+
+**C7.3 Finding standards block (D5):** add `golden_control_id` (primary, AT&T-supplied), keep `owasp_llm`/`mitre_atlas`/`iso_42001` as cross-tags. Golden Controls + ISO 42001 are the primary anchor; the H5.3 harness produces the coverage/gap report.
+
+**C7.4 Data classes:** add **`CPNI`** to `risk_weights.yaml` data_class (weight ≈ PII/PHI tier) and register a **Presidio CPNI recognizer** for the Data-Privacy harness (H2.3).
+
+**C7.5 Pack selection rule (W2):** `pack = Foundational ∪ Advanced(by asset capability_tags) ∪ (AT&T Context if use_case.tenant == AT&T)`, filtered by satisfiable `depends_on`, skip rationale for the rest (R5).
+
+**Open (needs AT&T input):** Golden Controls catalogue (IDs+text); exact identity of Janus / Internal AIRS / Prisma AIRS as source-vs-scanner; whether a Model Router already exists to integrate with.

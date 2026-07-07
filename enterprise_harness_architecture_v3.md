@@ -255,3 +255,19 @@ Findings carry standards tags so evidence maps to audits:
 ## 10. Non-goals (MVP)
 
 Kubernetes, Kafka, Temporal, enterprise IAM/SSO, SIEM, dynamic capability probing, runtime inline harness on the request path, multi-tenant isolation (carry `tenant_id` from day one per G12, but single-tenant runtime). Agents never take irreversible production actions (A10). The gate is never an LLM (A1).
+
+---
+
+## 11. Reconciliation with the harness visuals (v3.1 → AT&T)
+
+The visuals (`Harness_vis1–4`, `Enterprise_harness_platform_arch_v2.drawio`) are the customer-facing view of this architecture. They validate the core thesis (their "**Fixed gates vs Agentic loops**" = invariant **A1**) and add customer/product breadth folded in here. Full analysis in `enterprise_harness_visuals_correlation.md`; harness detail in `enterprise_harness_catalogue.md`.
+
+- **Customer context:** **AT&T**, CSO-owned assurance fabric. Positioning verb chain: *discover → secure → customize → deploy → evolve*.
+- **Terminology (locked):** "**Harness Category**" = one of the 5 catalogue categories (Test/Exposure/Remediation/Resilience/Governance). "**Platform Layer**" = §6.1–§6.20. "**Harness Pack**" = a tiered configuration of harness runners. Never use bare "Layer".
+- **Harness set:** the **20-harness catalogue** (`enterprise_harness_catalogue.md`) is the target; the four baseline harnesses (§8) are the Test+Exposure core; the MVP tracer = catalogue **H2.1**.
+- **Front-door agents:** add **W-A Source Agent** (discovery/register; gate *Source Allowed* = §6.1) and **W-B Security Agent** (SBOM/secrets/malware/license/policy/sandbox; gate *Security Pass* = §6.3) — see `_agentic_workflows.md`. Agents discover/scan; gates stay deterministic (A1).
+- **Model Router** (new, §6.12-adjacent): routes a request to a source model (Hosted/Databricks/Anthropic/Prisma AIRS/Open-Source/Internal). Distinct from the **Harness Selector** (picks packs).
+- **Harness Studio** (new): UI + SDK/API (Python/TS/Java) authoring surface over the Registry (§6.7); emits registrable packs honoring R3.
+- **Pack packaging model:** `pack_tier ∈ {foundational, advanced_capability, att_context}` + `capability_tags[]` (the 15-tag taxonomy — closes gap **G8**). See catalogue §9/§11.
+- **Control anchor (resolves open decision D5):** **AT&T Golden Controls + ISO 42001 primary**; OWASP LLM Top 10 / MITRE ATLAS / NIST AI RMF as cross-tags. Add `golden_control_id` to the Finding `standards` block.
+- **New data class:** **CPNI** (telecom-regulatory) added to `risk_weights.yaml` data_class and to the Data-Privacy harness detectors (Presidio custom recognizer).
