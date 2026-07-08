@@ -1,0 +1,40 @@
+"""Human-readable report rendering (§6.18). Pure formatting over an assurance bundle."""
+from __future__ import annotations
+
+from typing import Any, Dict
+
+
+def render_report(bundle: Dict[str, Any], specs: Dict[str, Any]) -> str:
+    ctx = bundle["context"]
+    gate = bundle["gate"]
+    gov = bundle["governance"]
+    first = next(iter(bundle["harness_results"].values()), {})
+    L = [
+        f"# AT&T AI Assurance Report — {bundle['asset'].get('name', 'asset')}",
+        f"**Gate:** `{gate['decision'].upper()}` · rule `{gate['matched_rule']}` · {gate['rationale']}",
+        f"**Risk tier:** {ctx['tier']} ({ctx['score']}) · **Pack:** {ctx['pack_tier']}",
+        f"**Evidence basis:** {first.get('evidence_basis', 'n/a')}",
+        f"**Replay (Mode-A):** {'PASS' if bundle['replay']['ok'] else 'FAIL'}",
+        "",
+        "## Harnesses",
+    ]
+    for hid, r in bundle["harness_results"].items():
+        name = specs[hid].name if hid in specs else hid
+        L.append(f"- **{hid}** {name}: {r['status']}, {r['metrics']['findings']} finding(s), decision `{r['decision']}`")
+    L.append(f"- **H5.1** governance: {gov['metrics']['complete']}/{gov['metrics']['checked']} findings lifecycle-complete")
+
+    L += ["", "## Findings (aggregate)"]
+    if not bundle["findings"]:
+        L.append("- (none)")
+    for f in bundle["findings"]:
+        L.append(f"- **[{f['severity']}]** `{f['category']}` ({f['harness']}) · basis: {f['basis']} "
+                 f"· owasp {f['standards'].get('owasp_llm')}")
+
+    L += ["", "## Calibration", *[
+        f"- {h}: P={c['precision']} R={c['recall']} A={c['accuracy']} eligible={c['gate_eligible']}"
+        for h, c in bundle["calibration"].items()]]
+
+    if bundle["skipped"]:
+        L += ["", "## Skipped (coverage honesty)",
+              *[f"- {s['harness']} -> {s['reason']}" for s in bundle["skipped"]]]
+    return "\n".join(L)

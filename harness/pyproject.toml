@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "enterprise-harness"
+version = "0.1.0"
+description = "Enterprise AI Assurance Harness — functional MVP reference prototype (control-plane decides, data-plane executes)"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Ivan Avelancio Jr." }]
+license = { text = "Proprietary — AT&T Enterprise AI Harness Platform" }
+# Core runs offline on the standard library alone (mock provider, no keys, no network).
+dependencies = []
+
+[project.optional-dependencies]
+# Real model providers via one unified interface (B2 adapter seam).
+providers = ["litellm>=1.40"]
+# PII/CPNI detection upgrade (swaps in behind the Detector port).
+pii = ["presidio-analyzer>=2.2", "presidio-anonymizer>=2.2"]
+# Externalized policy/config as YAML (B6). Without it, the baked-in defaults are used.
+config = ["pyyaml>=6.0"]
+# External red-team drivers that plug into the HarnessDriver port (B3 run-contract seam).
+redteam = ["pyrit>=0.4", "garak>=0.9"]
+dev = ["pytest>=7.4"]
+all = ["litellm>=1.40", "presidio-analyzer>=2.2", "presidio-anonymizer>=2.2", "pyyaml>=6.0", "pytest>=7.4"]
+
+[project.scripts]
+harness = "harness.interface.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+harness = ["../config/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
