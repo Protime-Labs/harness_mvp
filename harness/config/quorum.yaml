@@ -1,0 +1,16 @@
+# B6 — Judge quorum + calibration + provider (BF-11, PROVISIONAL). Owner: eval.
+# Merged onto the runtime config. Keys mirror the CONFIG dict.
+QUORUM_N: 3                 # A5/C3 judges per candidate (odd -> no ties)
+QUORUM_RULE: majority
+FAIL_ON_SEVERITY: high      # G4 severity that makes a finding blocking
+
+# C1/A9 calibration bar for gate-eligibility
+JUDGE_THRESHOLDS:
+  precision: 0.90
+  recall: 0.80
+  accuracy: 0.85
+
+# Provider + judge independence (A4/BF-20). On the real path JUDGE_MODEL must differ from LITELLM_MODEL.
+PROVIDER_MODE: mock                                  # mock | litellm
+LITELLM_MODEL: anthropic/claude-haiku-4-5-20251001   # target under test
+JUDGE_MODEL:   anthropic/claude-sonnet-4-5           # independent judge (!= target)

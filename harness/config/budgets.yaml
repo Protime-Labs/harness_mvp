@@ -1,0 +1,13 @@
+# B6 — Budget ceilings + determinism (BF-12, PROVISIONAL). Owner: platform.
+# A8/C6: a breach stops the harness and FAILS CLOSED (the gate blocks). Merged onto CONFIG.
+SEED: 42                    # A7/C5 determinism pin (mock)
+BUDGET:
+  max_turns: 100
+  max_tokens: 200000
+  max_cost_usd: 5.0
+  max_wall_clock_s: 600
+
+# Which attack harnesses run (catalogue §10). H5.1 governance always runs after.
+PHASE1_ATTACK: ["H2.1", "H1.2", "H1.3", "H2.3"]
+TARGET_PROFILE: vulnerable  # vulnerable | hardened (mock signal gradient)
+USE_PRESIDIO: false         # BF-16: true -> Presidio PII/CPNI detectors (needs the `pii` extra)

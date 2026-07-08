@@ -1,0 +1,11 @@
+# B6 — Golden Controls mapping (BF-17, PLACEHOLDER). Owner: AT&T governance.
+# These are DOMAIN TAGS standing in for the real AT&T Golden Controls catalogue. When the
+# catalogue is supplied, replace each domain with its real control IDs + text and map them to
+# finding categories. This is a dependency ticket, not a decided value (DR-07).
+domains:
+  tool_egress:     { control_id: "GC-TBD-EGRESS",  text: "PLACEHOLDER — tool/network egress control" }
+  change_mgmt:     { control_id: "GC-TBD-CHANGE",  text: "PLACEHOLDER — change management / write-action control" }
+  model_risk:      { control_id: "GC-TBD-MODEL",   text: "PLACEHOLDER — model risk management control" }
+  data_policy:     { control_id: "GC-TBD-DATA",    text: "PLACEHOLDER — data handling / classification control" }
+  acceptable_use:  { control_id: "GC-TBD-USE",     text: "PLACEHOLDER — acceptable use / harm control" }
+  cpni_handling:   { control_id: "GC-TBD-CPNI",    text: "PLACEHOLDER — CPNI handling control (47 U.S.C. 222)" }
