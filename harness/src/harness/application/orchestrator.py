@@ -77,8 +77,21 @@ def run_assurance(
     # W9 remediation (advisory)
     remediation = remediate(all_findings)
 
+    # self-describing run config (audit + dashboard inputs)
+    is_real = cfg["PROVIDER_MODE"] == "litellm"
+    run_config = {
+        "provider_mode": cfg["PROVIDER_MODE"],
+        "target_model": cfg["LITELLM_MODEL"] if is_real else "mock-1",
+        "judge_model": cfg["JUDGE_MODEL"] if is_real else "offline sim (content=real, semantic=simulated)",
+        "quorum_n": cfg["QUORUM_N"], "quorum_rule": cfg["QUORUM_RULE"],
+        "fail_on_severity": cfg["FAIL_ON_SEVERITY"], "seed": cfg["SEED"],
+        "budget": cfg["BUDGET"], "use_presidio": cfg.get("USE_PRESIDIO", False),
+    }
+
     return {
         "asset": asset,
+        "use_case": use_case,
+        "run_config": run_config,
         "context": ctx,
         "plan": plan,
         "skipped": skipped,

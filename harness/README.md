@@ -28,6 +28,15 @@ PYTHONPATH=src python -m harness verify
 # 3) inspect config resolution, invariants, and the harness registry
 PYTHONPATH=src python -m harness info
 
+# 4) build a self-contained HTML dashboard and open/serve it locally
+PYTHONPATH=src python -m harness dashboard --open                         # fresh mock run -> open
+PYTHONPATH=src python -m harness dashboard --serve 8000                   # serve on localhost + open
+PYTHONPATH=src python -m harness dashboard --in a.json --in b.json        # compare saved bundles
+PYTHONPATH=src python -m harness run --provider litellm --html dash.html --open
+
+# 5) inventory every plugin/dependency and what the LAB can run
+PYTHONPATH=src python -m harness plugins
+
 # programmatic use
 python examples/run_mock.py
 
@@ -109,6 +118,32 @@ PYTHONPATH=src python -m harness run --provider litellm
 Set the target/judge models in `config/quorum.yaml`. The harness code does not change —
 only the adapter behind `ModelPort`. If `JUDGE_MODEL == LITELLM_MODEL`, the factory refuses to
 run (judge independence violated).
+
+---
+
+## Dashboard & lab capabilities
+
+`harness dashboard` renders a **self-contained HTML** view (no server, no network, no build
+step): the gate verdict as a **PASS / WARN / FAIL** badge, the **inputs** that produced it
+(use case + run config), per-harness **signals**, findings feedback, calibration meters, and a
+**Plugins & dependencies** panel. Double-click the file, `--open` it, or `--serve` it. A
+"Load bundle…" control reads any local `result.json` with the browser FileReader, so you can
+drop in your own runs — built for testing and experimentation.
+
+The **plugin inventory** is the lab-vs-enterprise model made explicit. `harness plugins` (and the
+dashboard panel) classify every seam implementation:
+
+| Status | Meaning | Examples |
+|---|---|---|
+| **available** | runs now (built-in or installed) | mock, LiteLLM (installed), regex, file evidence, YAML |
+| **installable** | a local `pip install` away | Presidio `.[pii]`, PyRIT/Garak `.[redteam]` |
+| **stub** | seam defined, buildable in the lab | agentic overlay |
+| **enterprise** | needs an enterprise dependency **not wired** into the lab | Janus, Model Router, Golden Controls, WORM store |
+
+**lab-runnable = available | installable | stub.** The enterprise dependencies stay stubbed and
+clearly separated — a realistic environment you can experiment in without touching production
+systems. Anything installable becomes available the moment you `pip install` its extra; anything
+enterprise becomes available the moment its adapter implements the seam it already has.
 
 ---
 

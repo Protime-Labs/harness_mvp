@@ -1,8 +1,9 @@
 """CLI — the entry point. Wires config + adapters into the application and prints results.
 
-    harness run      run the full assurance chain, print the report (+ optional bundle json)
-    harness verify   run + the invariant acceptance suite; exit non-zero on any failure
-    harness info     show config sources, invariants, and the harness registry
+    harness run        run the full assurance chain, print the report (+ optional bundle/dashboard)
+    harness verify     run + the invariant acceptance suite; exit non-zero on any failure
+    harness dashboard  build a self-contained HTML dashboard (open/serve locally)
+    harness info       show config sources, invariants, and the harness registry
 
 Provider is offline mock by default (zero installs). `--provider litellm` swaps in a real model
 (needs `pip install litellm` + a key); the harness code is unchanged.
@@ -13,13 +14,13 @@ import argparse
 import json
 import os
 import sys
-from dataclasses import asdict
-from typing import Optional
+from typing import Dict, Optional
 
 from .. import __version__
 from ..domain.invariants import INVARIANTS
 from ..application.acceptance import run_invariant_suite
 from ..application.orchestrator import run_assurance
+from ..registry import load_harnesses
 from . import factory
 from .report import render_report
 
@@ -60,19 +61,76 @@ def _assemble(args):
     return ctx, bundle
 
 
+def _serializable(bundle: dict) -> dict:
+    return {k: v for k, v in bundle.items() if not k.startswith("_")}
+
+
+def _names(config_dir: Optional[str]) -> Dict[str, str]:
+    return {hid: s.name for hid, s in load_harnesses(config_dir).items()}
+
+
 def cmd_run(args) -> int:
     ctx, bundle = _assemble(args)
     if args.json:
-        serializable = {k: v for k, v in bundle.items() if not k.startswith("_")}
-        print(json.dumps(serializable, indent=2, default=str))
+        print(json.dumps(_serializable(bundle), indent=2, default=str))
     else:
         print(render_report(bundle, ctx["specs"]))
         print(f"\nEVIDENCE: {bundle['evidence_root']}")
     if args.out:
-        serializable = {k: v for k, v in bundle.items() if not k.startswith("_")}
         with open(args.out, "w", encoding="utf-8") as f:
-            json.dump(serializable, f, indent=2, default=str)
+            json.dump(_serializable(bundle), f, indent=2, default=str)
         print(f"WROTE:    {args.out}")
+    if getattr(args, "html", None):
+        from .dashboard import write_dashboard, open_in_browser
+        from .capabilities import probe
+        path = write_dashboard([bundle], _names(args.config), args.html, capabilities=probe())
+        print(f"DASHBOARD:{path}")
+        if getattr(args, "open", False):
+            open_in_browser(path)
+    return 0
+
+
+def cmd_dashboard(args) -> int:
+    from .dashboard import write_dashboard, open_in_browser, serve
+    from .capabilities import probe
+    bundles, labels = [], []
+    if args.in_:
+        for p in args.in_:
+            with open(p, "r", encoding="utf-8") as f:
+                bundles.append(json.load(f))
+            labels.append(os.path.splitext(os.path.basename(p))[0])
+    else:
+        _, bundle = _assemble(args)        # fresh run (respects --provider/--profile)
+        bundles.append(bundle)
+        labels.append((bundle.get("run_config", {}) or {}).get("provider_mode", "run"))
+    out = args.out or "harness_dashboard.html"
+    path = write_dashboard(bundles, _names(args.config), out, capabilities=probe(), labels=labels)
+    print(f"WROTE: {path}")
+    if args.serve is not None:
+        serve(os.path.dirname(path) or ".", os.path.basename(path), port=args.serve or 8000)
+    elif args.open:
+        open_in_browser(path)
+        print("opened in your browser")
+    return 0
+
+
+def cmd_plugins(args) -> int:
+    from .capabilities import probe, summarize
+    caps = probe()
+    s = summarize(caps)
+    print(f"enterprise-harness plugins & dependencies  "
+          f"({s['lab_runnable']}/{s['total']} runnable in the lab)\n")
+    group = None
+    for c in caps:
+        if c["group"] != group:
+            group = c["group"]
+            print(f"\n{group}")
+        extra = f"  pip install -e '.[{c['extra']}]'" if c.get("extra") and c["status"] == "installable" else ""
+        key = ""
+        if c.get("env") is not None:
+            key = "  [key in env]" if c.get("key_present") else "  [no key in this process env]"
+        print(f"  {c['id']:16s} {c['status']:12s} {c['name']}{extra}{key}")
+    print(f"\nlab-runnable = available | installable | stub   (enterprise deps are stubbed, not wired)")
     return 0
 
 
@@ -131,11 +189,26 @@ def build_parser() -> argparse.ArgumentParser:
     common(r)
     r.add_argument("--json", action="store_true", help="print the full bundle as JSON")
     r.add_argument("--out", help="write the bundle JSON to this path")
+    r.add_argument("--html", help="also write an HTML dashboard for this run")
+    r.add_argument("--open", action="store_true", help="open the HTML dashboard in a browser")
     r.set_defaults(func=cmd_run)
 
     v = sub.add_parser("verify", help="run + invariant acceptance suite (CI gate)")
     common(v)
     v.set_defaults(func=cmd_verify)
+
+    d = sub.add_parser("dashboard", help="build a self-contained HTML dashboard (open/serve locally)")
+    common(d)
+    d.add_argument("--in", dest="in_", action="append",
+                   help="bundle/result JSON to load (repeatable). Omit to run fresh.")
+    d.add_argument("--out", help="output HTML path (default: harness_dashboard.html)")
+    d.add_argument("--open", action="store_true", help="open the file in a browser")
+    d.add_argument("--serve", nargs="?", type=int, const=8000, default=None,
+                   metavar="PORT", help="serve on localhost (default port 8000) and open")
+    d.set_defaults(func=cmd_dashboard)
+
+    pl = sub.add_parser("plugins", help="inventory plugins/dependencies runnable in the lab")
+    pl.set_defaults(func=cmd_plugins)
 
     i = sub.add_parser("info", help="show config, invariants, registry")
     i.add_argument("--config", help="config directory (default: <repo>/config)")
