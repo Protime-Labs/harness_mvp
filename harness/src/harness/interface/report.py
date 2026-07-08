@@ -30,9 +30,14 @@ def render_report(bundle: Dict[str, Any], specs: Dict[str, Any]) -> str:
         L.append(f"- **[{f['severity']}]** `{f['category']}` ({f['harness']}) · basis: {f['basis']} "
                  f"· owasp {f['standards'].get('owasp_llm')}")
 
-    L += ["", "## Calibration", *[
+    L += ["", "## Calibration (scenario · vs the live target)", *[
         f"- {h}: P={c['precision']} R={c['recall']} A={c['accuracy']} eligible={c['gate_eligible']}"
         for h, c in bundle["calibration"].items()]]
+    jc = bundle.get("judge_calibration")
+    if jc:
+        L += ["", "## Judge calibration (verdict-level · target-independent, DR-11)",
+              f"- P={jc['precision']} R={jc['recall']} A={jc['accuracy']} "
+              f"eligible={jc['gate_eligible']} · n={jc['n']} · basis: {jc['basis']}"]
 
     if bundle["skipped"]:
         L += ["", "## Skipped (coverage honesty)",

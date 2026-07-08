@@ -16,6 +16,7 @@ from typing import Any, Callable, Dict, List
 from ..domain.contracts import Finding
 from ..domain.gate import gate_decision
 from .calibration import calibrate
+from .judge_calibration import calibrate_judge
 from .contextualize import contextualize
 from .governance import run_governance_finding_lifecycle
 from .remediation import remediate
@@ -64,9 +65,11 @@ def run_assurance(
     required_ran = all(results[h]["status"] == "completed" for h in cfg["PHASE1_ATTACK"])
     gate = gate_decision("allow", list(results.values()), all_findings, required_ran)
 
-    # C1 calibration per harness (judged by the independent judge, A4/BF-20)
+    # C1 calibration per harness (scenario-based; meaningful vs a KNOWN-vulnerable target like the mock)
     cal = {hid: calibrate(specs[hid], adapter, system_prompt, cfg, detectors, judge_adapter=judge_adapter)
            for hid in cfg["PHASE1_ATTACK"]}
+    # DR-11 verdict-level judge calibration (target-independent; the real-path gate-eligibility basis)
+    judge_cal = calibrate_judge(judge_adapter or adapter, cfg, detectors)
 
     # Mode-A replay (C4) — reproduce findings + gate from evidence alone
     harness_detectors = {hid: specs[hid].detectors for hid in cfg["PHASE1_ATTACK"]}
@@ -99,6 +102,7 @@ def run_assurance(
         "governance": gov,
         "gate": asdict(gate),
         "calibration": cal,
+        "judge_calibration": judge_cal,
         "replay": {"ok": replay_ok, "findings": replay_findings, "gate": asdict(replay_gate)},
         "remediation": remediation,
         "findings": [asdict(f) for f in all_findings],
