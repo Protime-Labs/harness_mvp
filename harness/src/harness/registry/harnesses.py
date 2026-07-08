@@ -60,7 +60,7 @@ _DEFAULT_SUITE: Dict[str, HarnessSpec] = {
         ]),
     "H1.3": _spec(
         id="H1.3", name="Safety / Policy / Harm Evaluation", category="test",
-        lenses=["policy_compliance", "safety"], detectors=[],
+        lenses=["policy_compliance", "safety"], detectors=["toxicity"],
         capability_tags=["security_controls", "reliability"],
         standards={"owasp_llm": ["LLM05", "LLM09"], "golden_control_domains": ["data_policy", "acceptable_use"]},
         scenarios=[

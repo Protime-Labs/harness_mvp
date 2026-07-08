@@ -135,10 +135,14 @@ dashboard panel) classify every seam implementation:
 
 | Status | Meaning | Examples |
 |---|---|---|
-| **available** | runs now (built-in or installed) | mock, LiteLLM (installed), regex, file evidence, YAML |
-| **installable** | a local `pip install` away | Presidio `.[pii]`, PyRIT/Garak `.[redteam]` |
-| **stub** | seam defined, buildable in the lab | agentic overlay |
+| **available** | runs now (built-in, or a wired package that is installed) | mock, LiteLLM, regex, **Presidio**, **Detoxify**, file evidence, YAML, HTML dashboard, JSON bundle |
+| **installable** | a local `pip install` away (adapter may still be a stub) | PyRIT/Garak `.[redteam]`, Inspect AI `.[eval]`, NeMo Guardrails `.[guardrails]` |
+| **stub** | seam defined, buildable in the lab | agentic overlay, Ollama, Llama Guard, Promptfoo |
 | **enterprise** | needs an enterprise dependency **not wired** into the lab | Janus, Model Router, Golden Controls, WORM store |
+
+Real detectors wire in behind the Detector seam: `--presidio` (PII/CPNI, augments the regex
+floor) and `--detoxify` (toxicity floor for the H1.3 safety harness). Both degrade gracefully
+if the package is absent.
 
 **lab-runnable = available | installable | stub.** The enterprise dependencies stay stubbed and
 clearly separated — a realistic environment you can experiment in without touching production

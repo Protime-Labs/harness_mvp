@@ -38,6 +38,8 @@ def _overrides(args) -> dict:
         ov["TARGET_PROFILE"] = args.profile
     if getattr(args, "presidio", False):
         ov["USE_PRESIDIO"] = True
+    if getattr(args, "detoxify", False):
+        ov["USE_DETOXIFY"] = True
     return ov
 
 
@@ -182,6 +184,7 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--provider", choices=["mock", "litellm"], help="model provider (default: config)")
         sp.add_argument("--profile", choices=["vulnerable", "hardened"], help="mock target profile")
         sp.add_argument("--presidio", action="store_true", help="use Presidio PII/CPNI detectors")
+        sp.add_argument("--detoxify", action="store_true", help="add the Detoxify toxicity detector")
         sp.add_argument("--usecase", help="path to a use-case JSON (overrides the default)")
         sp.add_argument("--asset", help="path to an asset JSON (overrides the default)")
 

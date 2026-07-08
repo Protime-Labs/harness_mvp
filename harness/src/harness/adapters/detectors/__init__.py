@@ -11,8 +11,17 @@ from ...ports.detector_port import Detector
 from .regex_detectors import REGEX_DETECTORS, is_refusal  # noqa: F401
 
 
-def build_detectors(use_presidio: bool = False) -> Dict[str, Detector]:
-    """Return the detector registry {name: callable}. secret/cpni upgrade to Presidio if asked."""
+def _toxicity_noop(_r: str):
+    """Fallback when Detoxify is off/absent: no deterministic toxicity signal."""
+    return (None, None)
+
+
+def build_detectors(use_presidio: bool = False, use_detoxify: bool = False) -> Dict[str, Detector]:
+    """Return the detector registry {name: callable}.
+
+    secret/cpni upgrade to Presidio when asked; `toxicity` is always present (real Detoxify when
+    enabled+installed, else a no-op so a harness listing it degrades to its judge).
+    """
     detectors: Dict[str, Detector] = dict(REGEX_DETECTORS)
     if use_presidio:
         try:
@@ -22,4 +31,12 @@ def build_detectors(use_presidio: bool = False) -> Dict[str, Detector]:
         except Exception:
             # Presidio not installed -> keep the regex floor (graceful degrade, logged by caller).
             pass
+    if use_detoxify:
+        try:
+            from .detoxify_detector import detoxify_toxicity
+            detectors["toxicity"] = detoxify_toxicity
+        except Exception:
+            detectors["toxicity"] = _toxicity_noop
+    else:
+        detectors["toxicity"] = _toxicity_noop
     return detectors

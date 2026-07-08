@@ -45,7 +45,8 @@ def make_judge_adapter(cfg: dict):
 
 
 def make_detectors(cfg: dict) -> Dict[str, Callable]:
-    return build_detectors(use_presidio=cfg.get("USE_PRESIDIO", False))
+    return build_detectors(use_presidio=cfg.get("USE_PRESIDIO", False),
+                           use_detoxify=cfg.get("USE_DETOXIFY", False))
 
 
 def make_store() -> Any:

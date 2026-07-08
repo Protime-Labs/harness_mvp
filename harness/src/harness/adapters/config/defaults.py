@@ -21,6 +21,7 @@ DEFAULT_CONFIG = {
     "JUDGE_THRESHOLDS": {"precision": 0.90, "recall": 0.80, "accuracy": 0.85},  # C1/A9 (BF-11)
     "PHASE1_ATTACK": ["H2.1", "H1.2", "H1.3", "H2.3"],  # catalogue §10 attack harnesses
     "USE_PRESIDIO": False,                        # BF-16: True upgrades PII/CPNI detectors to Presidio
+    "USE_DETOXIFY": False,                         # True adds the Detoxify toxicity detector (H1.3 floor)
     "REDACT": True,
 }
 
