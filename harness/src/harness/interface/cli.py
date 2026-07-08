@@ -157,6 +157,65 @@ def cmd_verify(args) -> int:
     return 0 if ok_all else 1
 
 
+_VERDICT_TAG = {"approve": "PASS", "warn": "WARN", "block": "FAIL", "manual_review": "REVIEW"}
+
+
+def _print_probe_event(stage: str, d: dict) -> None:
+    if stage == "plan":
+        ind = "independent" if d["judge_independent"] else "self (offline sim for semantic lenses)"
+        print(f"\nCHAIN PLAN")
+        print(f"  provider : {d['provider']}   judge: {d['judge']} ({ind})")
+        print(f"  detectors: {', '.join(d['detectors'])}")
+        print(f"  lenses   : {', '.join(d['lenses'])}   quorum: {d['quorum_n']}")
+        print(f"\n  prompt   : {d['prompt']}")
+        print("-" * 60)
+    elif stage == "target_start":
+        print(f"-> invoking target ({d['model']}) ...")
+    elif stage == "target":
+        txt = d["response"].replace("\n", " ")
+        print(f"   target responded: {txt[:100]}{'...' if len(txt) > 100 else ''}")
+    elif stage == "evidence":
+        print(f"   evidence captured: {d['hash'][:23]}...")
+    elif stage == "detector":
+        tag = f"HIT  {d['severity']}: {d['span']!r}" if d["hit"] else "----  (no hit)"
+        print(f"   [detector] {d['name']:9s} {tag}")
+    elif stage == "judge":
+        v = "FAIL" if d["attack_succeeded"] else "ok"
+        print(f"   [judge {d['index']}] {d['lens']:18s} {v:4s} conf={d['confidence']}  {d['rationale'][:60]}")
+    elif stage == "aggregate":
+        floor = " (detector-floored)" if d["detector_positive"] else ""
+        print("-" * 60)
+        print(f"AGGREGATE: succeeded={d['succeeded']} severity={d['severity']}{floor}")
+    elif stage == "gate":
+        print(f"GATE     : {_VERDICT_TAG.get(d['decision'], d['decision'].upper())}  "
+              f"[{d['decision']}]  rule {d['matched_rule']}  {d['rationale']}")
+
+
+def cmd_probe(args) -> int:
+    if args.serve is not None:
+        from .probe_server import serve_probe
+        serve_probe(port=args.serve or 8000, config_dir=args.config, overrides=_overrides(args))
+        return 0
+    if not args.prompt:
+        print("Provide --prompt \"your text\"  (or --serve [PORT] for the interactive dashboard)")
+        return 2
+    from ..application.probe import run_probe
+    ctx = factory.build_context(config_dir=args.config, overrides=_overrides(args))
+    lenses = detector_names = None
+    if args.harness:
+        spec = ctx["specs"][args.harness]
+        lenses = spec.lenses or None
+        detector_names = spec.detectors or None
+    result = run_probe(
+        args.prompt, adapter=ctx["adapter"], detectors=ctx["detectors"], cfg=ctx["cfg"],
+        store=ctx["store"], system_prompt=ctx["system_prompt"], judge_adapter=ctx["judge_adapter"],
+        lenses=lenses, detector_names=detector_names, on_event=_print_probe_event,
+    )
+    if args.json:
+        print("\n" + json.dumps(result, indent=2, default=str))
+    return 0
+
+
 def cmd_info(args) -> int:
     policy = factory.load_policy(config_dir=args.config)
     print(f"enterprise-harness v{__version__}")
@@ -216,6 +275,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     pl = sub.add_parser("plugins", help="inventory plugins/dependencies runnable in the lab")
     pl.set_defaults(func=cmd_plugins)
+
+    pr = sub.add_parser("probe", help="send one prompt through the chain with live indicators")
+    common(pr)
+    pr.add_argument("--prompt", help="the prompt to send through the chain")
+    pr.add_argument("--harness", help="use a specific harness's lenses+detectors (default: full battery)")
+    pr.add_argument("--json", action="store_true", help="print the full probe result as JSON")
+    pr.add_argument("--serve", nargs="?", type=int, const=8000, default=None, metavar="PORT",
+                    help="launch the interactive probe dashboard on localhost (default 8000)")
+    pr.set_defaults(func=cmd_probe)
 
     i = sub.add_parser("info", help="show config, invariants, registry")
     i.add_argument("--config", help="config directory (default: <repo>/config)")
