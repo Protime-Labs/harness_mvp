@@ -369,6 +369,8 @@ function renderCaps(){
       const left=el("div");left.appendChild(el("div","nm",esc(c.name)));
       let meta=esc(c.seam);
       if(c.extra&&c.status==="installable")meta+="  ·  .["+c.extra+"]";
+      if(c.wired===false&&c.status==="installable")meta+="  ·  adapter: stub";
+      if(c.pkg_installed===true&&c.status==="installable")meta+="  ·  pkg installed";
       if(c.key_present===false&&c.status==="available")meta+="  ·  no key in env";
       if(c.cite)meta+="  ·  "+esc(c.cite);
       left.appendChild(el("div","meta",meta));
