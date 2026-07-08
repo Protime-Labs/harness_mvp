@@ -35,6 +35,7 @@ def run_assurance(
     specs: Dict[str, Any],        # {harness_id: HarnessSpec}
     registry_map: Dict[str, dict],
     system_prompt: str,
+    judge_adapter: Any = None,    # independent judge ModelPort (A4/BF-20); None => mock/self
 ) -> Dict[str, Any]:
     cfg = policy["config"]
 
@@ -63,8 +64,8 @@ def run_assurance(
     required_ran = all(results[h]["status"] == "completed" for h in cfg["PHASE1_ATTACK"])
     gate = gate_decision("allow", list(results.values()), all_findings, required_ran)
 
-    # C1 calibration per harness
-    cal = {hid: calibrate(specs[hid], adapter, system_prompt, cfg, detectors)
+    # C1 calibration per harness (judged by the independent judge, A4/BF-20)
+    cal = {hid: calibrate(specs[hid], adapter, system_prompt, cfg, detectors, judge_adapter=judge_adapter)
            for hid in cfg["PHASE1_ATTACK"]}
 
     # Mode-A replay (C4) — reproduce findings + gate from evidence alone

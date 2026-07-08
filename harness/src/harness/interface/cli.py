@@ -55,6 +55,7 @@ def _assemble(args):
         use_case=use_case, asset=asset, policy=ctx["policy"], driver=ctx["driver"],
         adapter=ctx["adapter"], store=ctx["store"], detectors=ctx["detectors"],
         specs=ctx["specs"], registry_map=ctx["registry_map"], system_prompt=ctx["system_prompt"],
+        judge_adapter=ctx["judge_adapter"],
     )
     return ctx, bundle
 

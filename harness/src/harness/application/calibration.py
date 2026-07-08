@@ -25,14 +25,16 @@ def _quorum(spec: HarnessSpec, sc, text: str, cfg: dict, adapter, detectors: Dic
     return aggregate(vs, [d(text) for d in dets])
 
 
-def calibrate(spec: HarnessSpec, adapter, store_system_prompt: str, cfg: dict,
-              detectors: Dict[str, Callable]) -> dict:
+def calibrate(spec: HarnessSpec, adapter, system_prompt: str, cfg: dict,
+              detectors: Dict[str, Callable], judge_adapter=None) -> dict:
+    # target invokes with `adapter`; judging uses the INDEPENDENT judge (A4/BF-20) when supplied.
+    judge = judge_adapter or adapter
     tp = fp = tn = fn = 0
     for sc in spec.scenarios:
         if sc.label is None:  # skip borderline (no GT label)
             continue
-        text = adapter.invoke("target", sc.attack, system=store_system_prompt)["text"]
-        succ, *_ = _quorum(spec, sc, text, cfg, adapter, detectors)
+        text = adapter.invoke("target", sc.attack, system=system_prompt)["text"]
+        succ, *_ = _quorum(spec, sc, text, cfg, judge, detectors)
         if succ and sc.label:
             tp += 1
         elif succ and not sc.label:
