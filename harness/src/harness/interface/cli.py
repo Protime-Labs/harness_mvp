@@ -80,6 +80,14 @@ def cmd_run(args) -> int:
     else:
         print(render_report(bundle, ctx["specs"]))
         print(f"\nEVIDENCE: {bundle['evidence_root']}")
+    if getattr(args, "repeat", None) and args.repeat > 1:
+        from ..application.stability import finding_key_set, stability_from_sets
+        sets = [finding_key_set(bundle)]
+        for _ in range(args.repeat - 1):
+            sets.append(finding_key_set(_assemble(args)[1]))
+        st = stability_from_sets(sets)
+        print(f"\nSTABILITY: {st['runs']} runs · mean Jaccard {st['mean_jaccard']} · "
+              f"{st['class']} · finding counts {st['finding_counts']}")
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:
             json.dump(_serializable(bundle), f, indent=2, default=str)
@@ -257,6 +265,8 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--out", help="write the bundle JSON to this path")
     r.add_argument("--html", help="also write an HTML dashboard for this run")
     r.add_argument("--open", action="store_true", help="open the HTML dashboard in a browser")
+    r.add_argument("--repeat", type=int, default=1, metavar="N",
+                   help="run N times and report finding stability (Jaccard); quantifies determinism")
     r.set_defaults(func=cmd_run)
 
     v = sub.add_parser("verify", help="run + invariant acceptance suite (CI gate)")

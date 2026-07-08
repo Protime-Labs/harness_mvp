@@ -238,6 +238,11 @@ function render(bundle){
   chips.appendChild(mkchip("Mode-A replay",replay?"reproduced":"FAILED",replay?"pass":"fail"));
   chips.appendChild(mkchip("Determinism",det.determinism_class||"—"));
   chips.appendChild(mkchip("Findings",findings.length));
+  // cost / latency (summed across harnesses)
+  let tok=0,lat=0,cost=0;
+  for(const r of Object.values(hr)){const m=r.metrics||{};tok+=m.tokens||0;lat+=m.latency_s||0;cost+=m.cost_usd||0;}
+  chips.appendChild(mkchip("Tokens",tok.toLocaleString()));
+  chips.appendChild(mkchip("Latency",lat.toFixed(2)+"s"));
   hero.appendChild(chips);
   app.appendChild(hero);
 
@@ -337,6 +342,10 @@ function render(bundle){
     tb.appendChild(tr);
   }
   t.appendChild(tb);w.appendChild(t);cSec.appendChild(w);
+  const jc=bundle.judge_calibration;
+  if(jc){cSec.appendChild(el("div","foot-note",
+    "judge calibration (verdict-level, target-independent): P="+jc.precision+" R="+jc.recall+" A="+jc.accuracy+
+    " · eligible="+jc.gate_eligible+" · n="+jc.n+" · "+jc.basis));}
   const skipped=bundle.skipped||[];
   if(skipped.length){cSec.appendChild(el("div","foot-note","skipped: "+skipped.map(s=>s.harness+" ("+s.reason+")").join(" · ")));}
   app.appendChild(cSec);

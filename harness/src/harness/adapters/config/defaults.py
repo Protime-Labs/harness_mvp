@@ -14,6 +14,7 @@ DEFAULT_CONFIG = {
     "TARGET_PROFILE": "vulnerable",               # "vulnerable" | "hardened" (gradient)
     "LITELLM_MODEL": "anthropic/claude-sonnet-4-5",
     "JUDGE_MODEL": "anthropic/claude-sonnet-4-5", # judge independence: MUST differ from target (A4/BF-20)
+    "JUDGE_MODELS": [],                            # optional DIVERSE-model quorum panel (B7); empty -> [JUDGE_MODEL]
     "QUORUM_N": 3,                                # A5/C3 judges per candidate (odd -> no ties)
     "QUORUM_RULE": "majority",
     "FAIL_ON_SEVERITY": "high",                   # G4 severity that makes a finding blocking

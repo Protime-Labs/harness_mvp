@@ -31,17 +31,19 @@ class BuiltinDriver:
 
     name = "builtin"
 
-    def __init__(self, detectors: Dict[str, Callable], system_prompt: str, judge_adapter: Any = None):
+    def __init__(self, detectors: Dict[str, Callable], system_prompt: str, judge_adapter: Any = None,
+                 judge_adapters: Any = None):
         self.detectors = detectors
         self.system_prompt = system_prompt
         # Judge independence (A4/BF-20): a SEPARATE model judges. None => reuse target (mock path).
-        self.judge_adapter = judge_adapter
+        # A panel (judge_adapters) enables a DIVERSE-model quorum (B7): one model per quorum index.
+        self.judge_panel = list(judge_adapters) if judge_adapters else [judge_adapter]
 
     def run(self, spec: HarnessSpec, adapter: Any, store: Any, cfg: dict) -> Tuple[dict, list, list, list, List[Finding]]:
         lenses = spec.lenses
         dets = [self.detectors[d] for d in spec.detectors]
-        judge = self.judge_adapter or adapter          # judge independence seam (A4/BF-20)
-        real = getattr(judge, "name", "") == "litellm"  # 'real' = the JUDGE is a live model
+        panel = self.judge_panel                        # diverse judge quorum (one model per index)
+        real = any(getattr(j, "name", "") == "litellm" for j in panel if j is not None)
         hr_id = f"HR-{spec.id}"
         turns: list = []
         verdicts: list = []
@@ -49,6 +51,7 @@ class BuiltinDriver:
         manifest: list = []
         turn_no = 0
         tokens = 0
+        cost_usd = 0.0
         t0 = time.time()
         b = cfg["BUDGET"]
         status = "completed"
@@ -61,6 +64,7 @@ class BuiltinDriver:
             resp = adapter.invoke("target", _build_attack(sc)["prompt"], system=self.system_prompt)
             turn_no += 1
             tokens += resp["tokens"]["in"] + resp["tokens"]["out"]
+            cost_usd += resp.get("cost_usd", 0.0)
             t_atk = store.capture_turn(hr_id, "attacker", f"attacker.{spec.id}", sc.attack, adapter.name)
             t_tgt = store.capture_turn(hr_id, "target", "asset-under-test", resp["text"], adapter.name,
                                        model=resp["model"], tokens=resp["tokens"])
@@ -73,8 +77,10 @@ class BuiltinDriver:
             vlist = []
             for j in range(cfg["QUORUM_N"]):
                 lens = lenses[j % len(lenses)] if lenses else "policy_compliance"
+                judge = panel[j % len(panel)] or adapter   # rotate judge model across the quorum
                 v = run_judge(lens, sc_dict, resp["text"], judge, cfg["SEED"] + j)
-                verdicts.append(store.capture_verdict(hr_id, cand, f"judge.{lens}.v1", lens, v))
+                jname = getattr(judge, "model", None) or getattr(judge, "name", "judge")
+                verdicts.append(store.capture_verdict(hr_id, cand, f"judge.{lens}.{jname}", lens, v))
                 vlist.append(v)
             succeeded, severity, confidence, det_pos = aggregate(vlist, [d(resp["text"]) for d in dets])
             basis = "detector(real-content)" if det_pos else ("llm-judge(real)" if real else "simulated-judge(offline)")
@@ -89,7 +95,10 @@ class BuiltinDriver:
 
         total = len(spec.scenarios)
         metrics = {"scenarios": total, "findings": len(findings),
-                   "success_rate": round(len(findings) / max(total, 1), 2)}
+                   "success_rate": round(len(findings) / max(total, 1), 2),
+                   "tokens": tokens, "cost_usd": round(cost_usd, 4),
+                   "latency_s": round(time.time() - t0, 3),
+                   "judges": [getattr(j, "model", None) or getattr(j, "name", "sim") for j in panel]}
         ev_basis = ("real (LLM judge reads responses + real-content detectors)" if real
                     else "simulated (offline: content detectors are REAL; semantic verdicts simulated from labels)")
         result = {

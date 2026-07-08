@@ -30,18 +30,28 @@ def make_target_adapter(cfg: dict):
     return MockAdapter(seed=cfg["SEED"], profile=cfg.get("TARGET_PROFILE", "vulnerable"))
 
 
-def make_judge_adapter(cfg: dict):
-    """Independent judge (A4/BF-20). Mock path judges with the same offline sim path (None).
-    Real path REQUIRES judge model != target model."""
+def make_judge_adapters(cfg: dict) -> list:
+    """Build the judge panel (A4/BF-20). Mock path -> [None] (offline sim). Real path -> one
+    LiteLLMAdapter per JUDGE_MODELS entry (a DIVERSE-model quorum, B7); each must differ from the
+    target. JUDGE_MODELS empty -> [JUDGE_MODEL]."""
     if cfg["PROVIDER_MODE"] != "litellm":
-        return None
-    if cfg["JUDGE_MODEL"] == cfg["LITELLM_MODEL"]:
-        raise ValueError(
-            f"Judge independence violated (A4/BF-20): JUDGE_MODEL must differ from LITELLM_MODEL "
-            f"(both = {cfg['JUDGE_MODEL']}). Set a different judge model in config/quorum.yaml."
-        )
+        return [None]
+    models = list(cfg.get("JUDGE_MODELS") or []) or [cfg["JUDGE_MODEL"]]
     from ..adapters.model.litellm_adapter import LiteLLMAdapter
-    return LiteLLMAdapter(cfg["JUDGE_MODEL"])
+    panel = []
+    for m in models:
+        if m == cfg["LITELLM_MODEL"]:
+            raise ValueError(
+                f"Judge independence violated (A4/BF-20): judge model must differ from the target "
+                f"(both = {m}). Set a different judge in config/quorum.yaml."
+            )
+        panel.append(LiteLLMAdapter(m))
+    return panel
+
+
+def make_judge_adapter(cfg: dict):
+    """The primary (single) judge — first of the panel. Used by non-reference drivers/probe."""
+    return make_judge_adapters(cfg)[0]
 
 
 def make_detectors(cfg: dict) -> Dict[str, Callable]:
@@ -53,9 +63,11 @@ def make_store() -> Any:
     return FileEvidenceStore()
 
 
-def make_driver(cfg: dict, detectors: Dict[str, Callable], judge_adapter=None, force_builtin: bool = False):
+def make_driver(cfg: dict, detectors: Dict[str, Callable], judge_adapter=None,
+                force_builtin: bool = False, judge_adapters=None):
     """Select the harness driver (B3). `force_builtin` pins the invariant suite to the reference
-    driver (external drivers like Inspect don't implement budget fail-closed)."""
+    driver (external drivers like Inspect don't implement budget fail-closed). `judge_adapters`
+    is the diverse-quorum panel used by the reference driver."""
     driver = None if force_builtin else cfg.get("DRIVER")
     if driver == "inspect":
         from ..adapters.drivers.inspect_driver import InspectDriver
@@ -72,7 +84,8 @@ def make_driver(cfg: dict, detectors: Dict[str, Callable], judge_adapter=None, f
     if driver == "nemo":
         from ..adapters.drivers.nemo_driver import NemoGuardrailsDriver
         return NemoGuardrailsDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
-    return BuiltinDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
+    return BuiltinDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT,
+                         judge_adapter=judge_adapter, judge_adapters=judge_adapters)
 
 
 def build_context(config_dir: Optional[str] = None, overrides: Optional[dict] = None) -> dict:
@@ -80,7 +93,8 @@ def build_context(config_dir: Optional[str] = None, overrides: Optional[dict] = 
     policy = load_policy(config_dir, overrides)
     cfg = policy["config"]
     detectors = make_detectors(cfg)
-    judge_adapter = make_judge_adapter(cfg)
+    judge_adapters = make_judge_adapters(cfg)
+    judge_adapter = judge_adapters[0]
     return {
         "policy": policy,
         "cfg": cfg,
@@ -91,11 +105,13 @@ def build_context(config_dir: Optional[str] = None, overrides: Optional[dict] = 
         "system_prompt": SYSTEM_PROMPT,
         "adapter": make_target_adapter(cfg),
         "judge_adapter": judge_adapter,
+        "judge_adapters": judge_adapters,
         "store": make_store(),
-        "driver": make_driver(cfg, detectors, judge_adapter),
+        "driver": make_driver(cfg, detectors, judge_adapter, judge_adapters=judge_adapters),
         # factories for the acceptance suite (fresh instances per re-run)
         "make_store": make_store,
         "make_adapter": lambda: make_target_adapter(cfg),
-        # acceptance suite always runs on the reference (builtin) driver
-        "make_driver": lambda: make_driver(cfg, detectors, judge_adapter, force_builtin=True),
+        # acceptance suite always runs on the reference (builtin) driver + panel
+        "make_driver": lambda: make_driver(cfg, detectors, judge_adapter, force_builtin=True,
+                                           judge_adapters=judge_adapters),
     }
