@@ -142,9 +142,18 @@ dashboard panel) classify every seam implementation:
 
 Real plugins wire in behind their seams and degrade gracefully if absent:
 - **Detectors** — `--presidio` (PII/CPNI, augments the regex floor), `--detoxify` (toxicity floor for H1.3).
-- **Drivers (B3)** — `--driver inspect` runs the whole suite through **Inspect AI** (Inspect owns the
-  dataset + generation loop via a `ModelPort` bridge; our judge quorum + detectors + gate stay
-  authoritative). It yields the **same** gate decision as the built-in driver — the point of the seam.
+- **Drivers (B3)** — `--driver {builtin,overlay,inspect,pyrit,nemo,garak}`. Each honors the same run
+  contract, so the gate is unchanged:
+  - `builtin` — the scenario driver (reference; the invariant suite is pinned to it).
+  - `overlay` — **agentic overlay**: adaptive, multi-turn escalation; finds issues the single-shot
+    pass misses (e.g. 11 findings vs 8 on the mock). No external dep.
+  - `inspect` — **Inspect AI** owns the dataset + generation loop via a `ModelPort` bridge.
+  - `pyrit` — **Microsoft PyRIT**'s target pipeline drives the send via a bridged `PromptChatTarget`.
+  - `nemo` / `garak` — real adapters that are **model-bound** (NeMo needs a live LLM; Garak a served
+    target), so they stay `installable` and raise an actionable error offline rather than fake a run.
+
+  `inspect`, `pyrit`, and `builtin` all yield the **same** gate (BLOCK, 8 findings, replay PASS) on
+  the mock — different engines, one decision. That is the point of the B3 seam.
 
 **lab-runnable = available | installable | stub.** The enterprise dependencies stay stubbed and
 clearly separated — a realistic environment you can experiment in without touching production

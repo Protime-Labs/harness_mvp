@@ -8,3 +8,5 @@ Every driver honors the same contract, so the orchestrator treats them identical
 """
 from .overlay_driver import AgenticOverlayDriver  # noqa: F401
 from .pyrit_driver import PyritDriver  # noqa: F401
+from .garak_driver import GarakDriver  # noqa: F401
+from .nemo_driver import NemoGuardrailsDriver  # noqa: F401

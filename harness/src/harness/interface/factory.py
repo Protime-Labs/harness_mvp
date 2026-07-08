@@ -56,9 +56,22 @@ def make_store() -> Any:
 def make_driver(cfg: dict, detectors: Dict[str, Callable], judge_adapter=None, force_builtin: bool = False):
     """Select the harness driver (B3). `force_builtin` pins the invariant suite to the reference
     driver (external drivers like Inspect don't implement budget fail-closed)."""
-    if not force_builtin and cfg.get("DRIVER") == "inspect":
+    driver = None if force_builtin else cfg.get("DRIVER")
+    if driver == "inspect":
         from ..adapters.drivers.inspect_driver import InspectDriver
         return InspectDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
+    if driver == "overlay":
+        from ..adapters.drivers.overlay_driver import AgenticOverlayDriver
+        return AgenticOverlayDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
+    if driver == "pyrit":
+        from ..adapters.drivers.pyrit_driver import PyritDriver
+        return PyritDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
+    if driver == "garak":
+        from ..adapters.drivers.garak_driver import GarakDriver
+        return GarakDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
+    if driver == "nemo":
+        from ..adapters.drivers.nemo_driver import NemoGuardrailsDriver
+        return NemoGuardrailsDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
     return BuiltinDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
 
 
