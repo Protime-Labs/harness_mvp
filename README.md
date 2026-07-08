@@ -173,9 +173,11 @@ in **bash** use the inline form shown. If you `pip install -e .`, drop `PYTHONPA
 export PYTHONPATH=src
 
 # — evaluate —
-python -m harness run                       # full Phase-1 suite vs the mock (offline) → report
+python -m harness run                       # Foundational pack vs the mock (offline) → report
+python -m harness run --pack advanced       # Advanced pack (+ H1.1 H1.4 H2.2 H2.4 H1.5)
 python -m harness run --profile hardened    # mock hardened target → APPROVE
 python -m harness run --provider litellm     # real model (needs key) → Haiku target / Sonnet judge
+python -m harness run --repeat 3             # stability: mean Jaccard over N runs (determinism)
 python -m harness run --out bundle.json      # write the audit bundle
 
 # — verify (CI gate) —

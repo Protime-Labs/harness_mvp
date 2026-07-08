@@ -42,6 +42,8 @@ def _overrides(args) -> dict:
         ov["USE_DETOXIFY"] = True
     if getattr(args, "driver", None):
         ov["DRIVER"] = args.driver
+    if getattr(args, "pack", None):
+        ov["PACK"] = args.pack
     return ov
 
 
@@ -256,6 +258,8 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--detoxify", action="store_true", help="add the Detoxify toxicity detector")
         sp.add_argument("--driver", choices=["builtin", "inspect", "overlay", "pyrit", "garak", "nemo"],
                         help="harness driver (B3 seam)")
+        sp.add_argument("--pack", choices=["foundational", "advanced", "all"],
+                        help="harness pack (default: foundational)")
         sp.add_argument("--usecase", help="path to a use-case JSON (overrides the default)")
         sp.add_argument("--asset", help="path to an asset JSON (overrides the default)")
 

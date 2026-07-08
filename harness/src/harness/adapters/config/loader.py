@@ -74,6 +74,13 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
         cfg = _deep_merge(cfg, overrides)
         sources.append("cli-overrides")
 
+    # pack selection (B6): a non-foundational pack sets the required harnesses + the attack set.
+    selected = cfg.get("PACK", "foundational")
+    if selected in defaults.PACKS and selected != "foundational":
+        pack = list(defaults.PACKS[selected])
+        cfg["PHASE1_ATTACK"] = [h for h in pack if h not in defaults.GOVERNANCE_HARNESSES]
+        sources.append(f"pack:{selected}")
+
     return {
         "config": cfg,
         "risk_weights": weights,
