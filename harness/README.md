@@ -135,14 +135,16 @@ dashboard panel) classify every seam implementation:
 
 | Status | Meaning | Examples |
 |---|---|---|
-| **available** | runs now (built-in, or a wired package that is installed) | mock, LiteLLM, regex, **Presidio**, **Detoxify**, file evidence, YAML, HTML dashboard, JSON bundle |
-| **installable** | a local `pip install` away (adapter may still be a stub) | PyRIT/Garak `.[redteam]`, Inspect AI `.[eval]`, NeMo Guardrails `.[guardrails]` |
+| **available** | runs now (built-in, or a wired package that is installed) | mock, LiteLLM, regex, **Presidio**, **Detoxify**, **Inspect AI**, file evidence, YAML, HTML dashboard, JSON bundle |
+| **installable** | a local `pip install` away (adapter may still be a stub) | PyRIT/Garak `.[redteam]`, NeMo Guardrails `.[guardrails]` |
 | **stub** | seam defined, buildable in the lab | agentic overlay, Ollama, Llama Guard, Promptfoo |
 | **enterprise** | needs an enterprise dependency **not wired** into the lab | Janus, Model Router, Golden Controls, WORM store |
 
-Real detectors wire in behind the Detector seam: `--presidio` (PII/CPNI, augments the regex
-floor) and `--detoxify` (toxicity floor for the H1.3 safety harness). Both degrade gracefully
-if the package is absent.
+Real plugins wire in behind their seams and degrade gracefully if absent:
+- **Detectors** — `--presidio` (PII/CPNI, augments the regex floor), `--detoxify` (toxicity floor for H1.3).
+- **Drivers (B3)** — `--driver inspect` runs the whole suite through **Inspect AI** (Inspect owns the
+  dataset + generation loop via a `ModelPort` bridge; our judge quorum + detectors + gate stay
+  authoritative). It yields the **same** gate decision as the built-in driver — the point of the seam.
 
 **lab-runnable = available | installable | stub.** The enterprise dependencies stay stubbed and
 clearly separated — a realistic environment you can experiment in without touching production

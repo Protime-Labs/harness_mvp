@@ -40,6 +40,8 @@ def _overrides(args) -> dict:
         ov["USE_PRESIDIO"] = True
     if getattr(args, "detoxify", False):
         ov["USE_DETOXIFY"] = True
+    if getattr(args, "driver", None):
+        ov["DRIVER"] = args.driver
     return ov
 
 
@@ -185,6 +187,7 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--profile", choices=["vulnerable", "hardened"], help="mock target profile")
         sp.add_argument("--presidio", action="store_true", help="use Presidio PII/CPNI detectors")
         sp.add_argument("--detoxify", action="store_true", help="add the Detoxify toxicity detector")
+        sp.add_argument("--driver", choices=["builtin", "inspect"], help="harness driver (B3 seam)")
         sp.add_argument("--usecase", help="path to a use-case JSON (overrides the default)")
         sp.add_argument("--asset", help="path to an asset JSON (overrides the default)")
 

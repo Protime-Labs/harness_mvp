@@ -53,7 +53,12 @@ def make_store() -> Any:
     return FileEvidenceStore()
 
 
-def make_driver(cfg: dict, detectors: Dict[str, Callable], judge_adapter=None) -> BuiltinDriver:
+def make_driver(cfg: dict, detectors: Dict[str, Callable], judge_adapter=None, force_builtin: bool = False):
+    """Select the harness driver (B3). `force_builtin` pins the invariant suite to the reference
+    driver (external drivers like Inspect don't implement budget fail-closed)."""
+    if not force_builtin and cfg.get("DRIVER") == "inspect":
+        from ..adapters.drivers.inspect_driver import InspectDriver
+        return InspectDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
     return BuiltinDriver(detectors=detectors, system_prompt=SYSTEM_PROMPT, judge_adapter=judge_adapter)
 
 
@@ -78,5 +83,6 @@ def build_context(config_dir: Optional[str] = None, overrides: Optional[dict] = 
         # factories for the acceptance suite (fresh instances per re-run)
         "make_store": make_store,
         "make_adapter": lambda: make_target_adapter(cfg),
-        "make_driver": lambda: make_driver(cfg, detectors, judge_adapter),
+        # acceptance suite always runs on the reference (builtin) driver
+        "make_driver": lambda: make_driver(cfg, detectors, judge_adapter, force_builtin=True),
     }
