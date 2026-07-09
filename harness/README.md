@@ -103,7 +103,7 @@ reach a model, and the acceptance suite proves it (`A1 no-LLM in gate`).
 
 | Seam | Port | Ships | Plug in later |
 |---|---|---|---|
-| **B2 model I/O** | `ports/model_port.py` | `MockAdapter` | `LiteLLMAdapter`, **Janus**, AT&T **Model Router** |
+| **B2 model I/O** | `ports/model_port.py` | `MockAdapter` | `LiteLLMAdapter`, **Janus**, **Model Router** |
 | **B4 evidence** | `ports/evidence_port.py` | `FileEvidenceStore` | S3/WORM, append-only DB, SIEM export |
 | **Detector** | `ports/detector_port.py` | regex SSN/acct/action | **Presidio** (+CPNI recognizer), scanners |
 | **B3 run contract** | `ports/driver_port.py` | `BuiltinDriver` (scenarios) | **agentic overlay**, **PyRIT**, Garak, Promptfoo |
@@ -214,7 +214,7 @@ harness/
 │   ├── quorum.yaml           BF-11 quorum+calibration (owner: eval)
 │   ├── budgets.yaml          BF-12 budgets+determinism(owner: platform)
 │   ├── harnesses.yaml        BF-13 scenario override  (owner: red-team)
-│   └── golden_controls.yaml  BF-17 controls PLACEHOLDER(owner: AT&T governance)
+│   └── golden_controls.yaml  BF-17 controls PLACEHOLDER(owner: enterprise governance)
 ├── examples/run_mock.py      minimal programmatic run
 ├── src/harness/
 │   ├── domain/               B0/B1/B5 + risk + aggregate + patterns  (PURE)

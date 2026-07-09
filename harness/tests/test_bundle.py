@@ -5,8 +5,8 @@ from harness.application.bundle import validate_run_bundle, write_run_bundle
 from harness.application.orchestrator import run_assurance
 from harness.interface import factory
 
-ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "att-customer-support-agent"}
-UC = {"name": "att-customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
+ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "customer-support-agent"}
+UC = {"name": "customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
       "write_tools": True, "users": ["external"], "criticality": "tier1"}
 
 MANIFESTS = ["run_config.json", "gate_decision.json", "findings.json", "evidence_manifest.json",

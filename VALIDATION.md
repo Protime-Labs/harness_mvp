@@ -181,8 +181,8 @@ The full lifecycle as first-class records (assets, versions, runs, gate decision
 
 ```powershell
 python -m harness db-init --db harness_state.db
-python -m harness asset-register examples\fixtures\assets\att_support_agent.json --owner demo --db harness_state.db
-python -m harness usecase-create examples\fixtures\use_cases\att_customer_support_high_risk.json --db harness_state.db
+python -m harness asset-register examples\fixtures\assets\support_agent.json --owner demo --db harness_state.db
+python -m harness usecase-create examples\fixtures\use_cases\customer_support_high_risk.json --db harness_state.db
 # use the ids printed above:
 python -m harness evaluate --asset-version AST-...-v1 --usecase UC-... --bundle runs\RUN-0001 --db harness_state.db
 python -m harness validate-run runs\RUN-0001

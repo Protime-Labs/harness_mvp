@@ -26,7 +26,7 @@ from .replay import replay_mode_a
 from .selection import coverage_complete, select
 
 
-def _build_run_config(cfg: dict) -> dict:
+def _build_run_config(cfg: dict, scenario_source: str = "built-in/config suite") -> dict:
     """Self-describing run config (audit + dashboard inputs). Depends only on cfg."""
     is_real = cfg["PROVIDER_MODE"] in ("litellm", "http")
     if cfg["PROVIDER_MODE"] == "litellm":
@@ -45,6 +45,7 @@ def _build_run_config(cfg: dict) -> dict:
         "quorum_n": cfg["QUORUM_N"], "quorum_rule": cfg["QUORUM_RULE"],
         "fail_on_severity": cfg["FAIL_ON_SEVERITY"], "seed": cfg["SEED"],
         "budget": cfg["BUDGET"], "use_presidio": cfg.get("USE_PRESIDIO", False),
+        "scenario_source": scenario_source,
     }
 
 
@@ -98,7 +99,8 @@ def run_assurance(
             policy, store=store, detectors=detectors,
             driver_name=getattr(driver, "name", None), specs=specs)
         return {
-            "asset": asset, "use_case": use_case, "run_config": _build_run_config(cfg),
+            "asset": asset, "use_case": use_case,
+            "run_config": _build_run_config(cfg, policy.get("scenario_path") or "built-in/config suite"),
             "context": ctx, "plan": plan, "skipped": skipped, "quarantine": quarantine,
             "harness_results": {}, "governance": gov, "gate": asdict(gate),
             "enterprise_readiness": readiness, "mvp_readiness": mvp_readiness, "calibration": {},
@@ -157,7 +159,7 @@ def run_assurance(
     remediation = remediate(all_findings)
 
     # self-describing run config (audit + dashboard inputs)
-    run_config = _build_run_config(cfg)
+    run_config = _build_run_config(cfg, policy.get("scenario_path") or "built-in/config suite")
     readiness = assess_enterprise_readiness(
         policy,
         store=store,

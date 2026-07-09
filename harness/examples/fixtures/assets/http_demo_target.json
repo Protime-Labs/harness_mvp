@@ -1,0 +1,12 @@
+{
+  "asset_id": "EP-001",
+  "type": "application_endpoint",
+  "name": "demo-http-target",
+  "endpoint_url_ref": "env:TARGET_URL",
+  "response_path": "text",
+  "headers": { "X-Client": "harness" },
+  "auth_ref": "env:TARGET_TOKEN",
+  "network_policy": "allowlist",
+  "data_class": "synthetic-only",
+  "owner": "demo"
+}

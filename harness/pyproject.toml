@@ -9,7 +9,7 @@ description = "Enterprise AI Assurance Harness — functional MVP reference prot
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [{ name = "Ivan Avelancio Jr." }]
-license = { text = "Proprietary — AT&T Enterprise AI Harness Platform" }
+license = { text = "Proprietary — Enterprise AI Harness Platform" }
 # Core runs offline on the standard library alone (mock provider, no keys, no network).
 dependencies = []
 

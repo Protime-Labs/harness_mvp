@@ -1,6 +1,6 @@
 """B2 — the model-I/O seam. The ONE path every model call goes through (R2/A2).
 
-Janus, any LiteLLM-backed provider, and the AT&T Model Router all plug in HERE by
+Janus, any LiteLLM-backed provider, and an enterprise Model Router all plug in HERE by
 implementing this Protocol. The application never imports a concrete provider — it depends
 only on `ModelPort`, so swapping mock -> real -> Janus is a wiring change, not a code change.
 """

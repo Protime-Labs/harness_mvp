@@ -12,8 +12,8 @@ from harness.application.orchestrator import run_assurance   # noqa: E402
 from harness.interface import factory                         # noqa: E402
 from harness.interface.report import render_report            # noqa: E402
 
-ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "att-customer-support-agent"}
-USE_CASE = {"name": "att-customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
+ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "customer-support-agent"}
+USE_CASE = {"name": "customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
             "write_tools": True, "users": ["external"], "criticality": "tier1"}
 
 

@@ -1,5 +1,5 @@
 {
-  "name": "att-customer-support",
+  "name": "customer-support",
   "data_classes": ["CPNI", "PII"],
   "exposure": "public",
   "write_tools": true,

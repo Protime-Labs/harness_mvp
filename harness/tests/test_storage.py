@@ -46,8 +46,8 @@ def test_full_evaluate_flow_persists_completed_run(tmp_path):
     from harness.application.orchestrator import run_assurance
     from harness.interface import factory
 
-    asset = {"asset_id": "AGT-001", "type": "agent", "name": "att-customer-support-agent"}
-    uc = {"name": "att-customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
+    asset = {"asset_id": "AGT-001", "type": "agent", "name": "customer-support-agent"}
+    uc = {"name": "customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
           "write_tools": True, "users": ["external"], "criticality": "tier1"}
 
     conn = repo.connect(repo.init_db(str(tmp_path / "state.db")))

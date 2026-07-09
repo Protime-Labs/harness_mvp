@@ -66,7 +66,7 @@ REGISTRY = {
     "H4.4": {"implemented": False},
 }
 
-# --- Golden Controls domains (BF-17 — PLACEHOLDER for the AT&T catalogue) ----------------
+# --- Golden Controls domains (BF-17 — PLACEHOLDER for the enterprise catalogue) ----------------
 GOLDEN_CONTROL_DOMAINS = [
     "tool_egress", "change_mgmt", "model_risk", "data_policy",
     "acceptable_use", "cpni_handling",

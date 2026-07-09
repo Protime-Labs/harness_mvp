@@ -3,8 +3,8 @@ from harness.application.acceptance import run_invariant_suite
 from harness.application.orchestrator import run_assurance
 from harness.interface import factory
 
-ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "att-customer-support-agent"}
-UC = {"name": "att-customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
+ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "customer-support-agent"}
+UC = {"name": "customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
       "write_tools": True, "users": ["external"], "criticality": "tier1"}
 
 

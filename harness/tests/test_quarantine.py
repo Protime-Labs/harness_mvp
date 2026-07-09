@@ -1,7 +1,7 @@
 """Quarantine front door: a secret in asset content blocks ingress with a redacted finding."""
 from harness.application.quarantine import screen_asset
 
-CLEAN_ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "att-customer-support-agent"}
+CLEAN_ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "customer-support-agent"}
 
 
 def test_clean_asset_allows():

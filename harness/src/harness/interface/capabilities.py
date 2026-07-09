@@ -35,7 +35,7 @@ CATALOGUE = [
      "seam": "ModelPort", "kind": "stub", "wired": False, "cite": "local runtime + pulled model; route via LiteLLM"},
     {"group": "Model providers (B2 · ModelPort)", "id": "janus", "name": "Janus (role TBD)",
      "seam": "ModelPort", "kind": "enterprise", "wired": False, "cite": "DR-05 · base-layers seam B2"},
-    {"group": "Model providers (B2 · ModelPort)", "id": "model_router", "name": "AT&T Model Router",
+    {"group": "Model providers (B2 · ModelPort)", "id": "model_router", "name": "Model Router (enterprise gateway)",
      "seam": "ModelPort", "kind": "enterprise", "wired": False, "cite": "DR-08 · fronts the adapter"},
 
     # --- Detectors (Detector seam · C3 floor) ---
@@ -88,7 +88,7 @@ CATALOGUE = [
     {"group": "Config & standards (B6)", "id": "yaml", "name": "YAML policy overrides",
      "seam": "config", "kind": "optional-pip", "wired": True, "extra": "config", "modules": ["yaml"],
      "cite": "adapters/config/loader.py"},
-    {"group": "Config & standards (B6)", "id": "golden_controls", "name": "AT&T Golden Controls catalogue",
+    {"group": "Config & standards (B6)", "id": "golden_controls", "name": "Golden Controls catalogue (enterprise)",
      "seam": "config/B0", "kind": "enterprise", "wired": False, "cite": "DR-07 · config/golden_controls.yaml"},
 ]
 

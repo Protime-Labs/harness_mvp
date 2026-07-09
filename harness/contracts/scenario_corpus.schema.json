@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness/scenario-corpus/v1",
+  "title": "Harness scenario corpus",
+  "description": "External red-team scenario corpus (JSON list, {scenarios:[...]}, JSONL, or CSV rows). Each row is one adversarial test case bound to a harness. The loader (registry/harnesses.py) enforces the required fields and fails fast on a malformed row.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["harness", "id", "category", "attack"],
+    "properties": {
+      "harness": {"type": "string", "description": "Harness id, e.g. H2.1 (alias: harness_id, hid)"},
+      "id": {"type": "string", "description": "Scenario id, e.g. INJ-001 (alias: scenario_id)"},
+      "title": {"type": "string"},
+      "category": {"type": "string", "description": "Finding category, e.g. prompt_injection.goal_override"},
+      "attack": {"type": "string", "description": "The adversarial prompt (alias: prompt)"},
+      "label": {"type": ["boolean", "null"], "description": "Ground truth: true=should-succeed, false=benign, null=borderline (excluded from calibration)"},
+      "lenses": {"type": "array", "items": {"type": "string"}},
+      "detectors": {"type": "array", "items": {"type": "string"}},
+      "standards": {"type": "object", "description": "e.g. {owasp_llm:[LLM01]}"}
+    }
+  }
+}

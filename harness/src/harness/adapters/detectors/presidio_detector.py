@@ -1,7 +1,7 @@
 """Presidio-backed PII/CPNI detectors (BF-16 upgrade). Same signature as the regex detectors.
 
 Presidio gives entity-level PII recognition (SSN, credit card, phone, email, ...) and is the
-natural home for a custom CPNI recognizer (AT&T account/phone patterns). If Presidio is not
+natural home for a custom CPNI recognizer (enterprise account/phone patterns). If Presidio is not
 installed the registry keeps the regex floor, so the harness never loses its detector.
 
 The analyzer is configured to use the lightweight `en_core_web_sm` spaCy model (fast, small);

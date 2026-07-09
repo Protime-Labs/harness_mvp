@@ -2,7 +2,7 @@
 
 Same interface as MockAdapter, so NO harness code changes when you swap it in. This is the
 concrete B2 seam for real models (Anthropic, OpenAI, Azure, Bedrock, Databricks, a local
-gateway, or the AT&T Model Router fronting any of them).
+gateway, or an enterprise Model Router fronting any of them).
 
 Judge independence (A4/BF-20) is enforced by the application, not here: the runner is given a
 separate judge adapter whose model MUST differ from the target's.

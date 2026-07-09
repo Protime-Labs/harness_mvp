@@ -1,10 +1,10 @@
-# B6 — Golden Controls mapping (BF-17). Owner: AT&T governance.
-# This is a STRUCTURED UNRESOLVED DEPENDENCY RECORD, not a set of real control IDs. Until the AT&T
+# B6 — Golden Controls mapping (BF-17). Owner: enterprise governance.
+# This is a STRUCTURED UNRESOLVED DEPENDENCY RECORD, not a set of real control IDs. Until the enterprise
 # Golden Controls catalogue is supplied, findings map to the fallback OWASP/NIST tags below and
 # enterprise control attestation is explicitly NOT complete (readiness + reports say so).
 schema: harness/golden-controls/v1
 status: unresolved
-external_dependency: AT&T Golden Controls catalogue
+external_dependency: enterprise Golden Controls catalogue
 note: >
   No real control IDs are asserted here. Replace each domain with its true control_id + text when
   the catalogue is provided; until then the fallback standards carry the mapping.

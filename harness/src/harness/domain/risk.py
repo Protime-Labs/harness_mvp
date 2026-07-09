@@ -45,5 +45,5 @@ def contextualize(
         "tier": tier,
         "required_harnesses": list(pack),
         "pack_tier": pack_tier,
-        "rationale": f"score={score} -> {tier}; AT&T {pack_tier.capitalize()} pack",
+        "rationale": f"score={score} -> {tier}; {pack_tier.capitalize()} pack",
     }

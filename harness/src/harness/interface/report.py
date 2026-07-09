@@ -10,7 +10,7 @@ def render_report(bundle: Dict[str, Any], specs: Dict[str, Any]) -> str:
     gov = bundle["governance"]
     first = next(iter(bundle["harness_results"].values()), {})
     L = [
-        f"# AT&T AI Assurance Report — {bundle['asset'].get('name', 'asset')}",
+        f"# Enterprise AI Assurance Report — {bundle['asset'].get('name', 'asset')}",
         f"**Gate:** `{gate['decision'].upper()}` · rule `{gate['matched_rule']}` · {gate['rationale']}",
         f"**Risk tier:** {ctx['tier']} ({ctx['score']}) · **Pack:** {ctx['pack_tier']}",
         f"**Evidence basis:** {first.get('evidence_basis', 'n/a')}",

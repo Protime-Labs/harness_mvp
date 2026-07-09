@@ -19,7 +19,7 @@ def test_detects_private_key_and_inline_credential():
 
 
 def test_clean_text_has_no_hits():
-    assert scan_secrets("att-customer-support-agent AGT-001 agent") == []
+    assert scan_secrets("customer-support-agent AGT-001 agent") == []
     assert scan_secrets("") == []
 
 

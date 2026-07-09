@@ -26,9 +26,9 @@ from ..registry import load_harnesses
 from . import factory
 from .report import render_report
 
-# Default asset + use-case (the AT&T customer-support agent, notebook §13). Override via --usecase.
-DEFAULT_ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "att-customer-support-agent"}
-DEFAULT_USE_CASE = {"name": "att-customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
+# Default asset + use-case (a generic customer-support agent demo). Override via --asset/--usecase.
+DEFAULT_ASSET = {"asset_id": "AGT-001", "type": "agent", "name": "customer-support-agent"}
+DEFAULT_USE_CASE = {"name": "customer-support", "data_classes": ["CPNI", "PII"], "exposure": "public",
                     "write_tools": True, "users": ["external"], "criticality": "tier1"}
 
 
@@ -334,7 +334,14 @@ def cmd_evaluate(args) -> int:
         print(f"unknown reference (asset-version found={asset is not None}, usecase found={use_case is not None}); "
               f"register/create them first"); conn.close(); return 2
     run_id = repo.create_run(conn, args.asset_version, args.usecase)
-    ctx = factory.build_context(config_dir=args.config, overrides=_overrides(args),
+    from ..application.endpoints import endpoint_overrides, inline_secret_refs, is_endpoint_asset
+    overrides = _overrides(args)
+    if is_endpoint_asset(asset):
+        bad = inline_secret_refs(asset)
+        if bad:
+            print(f"  WARNING: inline secret(s) in endpoint asset fields {bad} — use 'env:VAR' references")
+        overrides = {**endpoint_overrides(asset), **overrides}  # asset config; explicit CLI flags win
+    ctx = factory.build_context(config_dir=args.config, overrides=overrides,
                                 scenario_path=getattr(args, "scenarios", None))
     bundle = run_assurance(
         use_case=use_case, asset=asset, policy=ctx["policy"], driver=ctx["driver"],
@@ -503,6 +510,8 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--presidio", action="store_true", help="use Presidio PII/CPNI detectors")
         sp.add_argument("--detoxify", action="store_true", help="add the Detoxify toxicity detector")
         sp.add_argument("--scenarios", help="JSON/JSONL/CSV scenario corpus keyed by harness")
+        sp.add_argument("--offline-judge", action="store_true",
+                        help="demo-only: simulate the semantic judge when no real judge key is available")
 
     di = sub.add_parser("db-init", help="create the local SQLite control-plane database")
     di.add_argument("--db", help=f"database path (default: {'harness_state.db'})")
