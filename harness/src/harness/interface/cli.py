@@ -1,9 +1,10 @@
 """CLI — the entry point. Wires config + adapters into the application and prints results.
 
-    harness run        run the full assurance chain, print the report (+ optional bundle/dashboard)
-    harness verify     run + the invariant acceptance suite; exit non-zero on any failure
-    harness dashboard  build a self-contained HTML dashboard (open/serve locally)
-    harness info       show config sources, invariants, and the harness registry
+    harness run          run the full assurance chain, print the report (+ optional bundle/dashboard)
+    harness verify       run + the invariant acceptance suite; exit non-zero on any failure
+    harness validate-run replay a persisted run bundle from disk (chain-of-custody)
+    harness dashboard    build a self-contained HTML dashboard (open/serve locally)
+    harness info         show config sources, invariants, and the harness registry
 
 Provider is offline mock by default (zero installs). `--provider litellm` swaps in a real model
 (needs `pip install litellm` + a key); the harness code is unchanged.
@@ -135,6 +136,10 @@ def cmd_run(args) -> int:
         with open(args.out, "w", encoding="utf-8") as f:
             json.dump(_serializable(bundle), f, indent=2, default=str)
         print(f"WROTE:    {args.out}")
+    if getattr(args, "bundle", None):
+        from ..application.bundle import write_run_bundle
+        path = write_run_bundle(bundle, ctx["store"], ctx["policy"], ctx["specs"], args.bundle)
+        print(f"BUNDLE:   {path}   (validate: harness validate-run {path})")
     if getattr(args, "html", None):
         from .dashboard import write_dashboard, open_in_browser
         from .capabilities import probe
@@ -273,6 +278,20 @@ def cmd_probe(args) -> int:
     return 0
 
 
+def cmd_validate_run(args) -> int:
+    from ..application.bundle import validate_run_bundle
+    rep = validate_run_bundle(args.path)
+    tag = "PASS" if rep["ok"] else "FAIL"
+    print(f"VALIDATE-RUN [{tag}]  run={rep['run_id']}  candidates={rep['candidates']}")
+    print(f"  expected gate : {rep['expected_gate']}")
+    print(f"  replayed gate : {rep['replayed_gate']}")
+    if rep["tamper"]:
+        print(f"  chain-of-custody: FAILED — {rep['tamper']}")
+    else:
+        print(f"  chain-of-custody: OK (every stored response re-hashed)")
+    return 0 if rep["ok"] else 1
+
+
 def cmd_info(args) -> int:
     policy = factory.load_policy(config_dir=args.config)
     print(f"enterprise-harness v{__version__}")
@@ -372,7 +391,9 @@ def build_parser() -> argparse.ArgumentParser:
     r = sub.add_parser("run", help="run the assurance chain")
     common(r)
     r.add_argument("--json", action="store_true", help="print the full bundle as JSON")
-    r.add_argument("--out", help="write the bundle JSON to this path")
+    r.add_argument("--out", help="write the bundle JSON to this single file")
+    r.add_argument("--bundle", metavar="DIR",
+                   help="write a replayable run bundle directory (e.g. runs/RUN-demo) for validate-run")
     r.add_argument("--html", help="also write an HTML dashboard for this run")
     r.add_argument("--open", action="store_true", help="open the HTML dashboard in a browser")
     r.add_argument("--repeat", type=int, default=1, metavar="N",
@@ -382,6 +403,10 @@ def build_parser() -> argparse.ArgumentParser:
     v = sub.add_parser("verify", help="run + invariant acceptance suite (CI gate)")
     common(v)
     v.set_defaults(func=cmd_verify)
+
+    vr = sub.add_parser("validate-run", help="replay a persisted run bundle from disk (chain-of-custody)")
+    vr.add_argument("path", help="path to a runs/RUN-.../ bundle directory (or its replay_manifest.json)")
+    vr.set_defaults(func=cmd_validate_run)
 
     d = sub.add_parser("dashboard", help="build a self-contained HTML dashboard (open/serve locally)")
     common(d)

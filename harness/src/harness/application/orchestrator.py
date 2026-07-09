@@ -105,6 +105,7 @@ def run_assurance(
             "remediation": remediate([]),
             "findings": [], "evidence_root": store.root,
             "_findings": [], "_verdicts": [], "_manifest": [],
+            "_turns": [], "_cost_status": {"governed": _cost_governed(cfg), "known": True},
         }
 
     # W3 run each attack harness (driver honors the run contract; judge quorum inside)
@@ -180,8 +181,10 @@ def run_assurance(
         "remediation": remediation,
         "findings": [asdict(f) for f in all_findings],
         "evidence_root": store.root,
-        # live objects for reporting / the acceptance suite (not serialized):
+        # live objects for reporting / the acceptance suite / bundle persistence (not serialized):
         "_findings": all_findings,
         "_verdicts": all_verdicts,
         "_manifest": all_manifest,
+        "_turns": all_turns,
+        "_cost_status": cost_status,
     }

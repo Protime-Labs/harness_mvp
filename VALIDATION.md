@@ -34,7 +34,7 @@ pip install detoxify pyrit                  # toxicity detector / PyRIT driver
 python -m pytest -q
 $env:PYTHONPATH = "src"; python -m harness verify
 ```
-**Expect:** `24 passed`; and the invariant suite ending `OVERALL: ALL PASS` (10 checks:
+**Expect:** `41 passed`; and the invariant suite ending `OVERALL: ALL PASS` (10 checks:
 R9, A1 no-LLM-in-gate, A5 quorum, C3 detector-floor, A8 fail-closed, C4 replay, A7 determinism,
 H5.1 governance, pack selected, block-on-critical).
 
@@ -152,11 +152,34 @@ the factory refuses if equal). This is the recorded **Gate G1** result (`harness
 
 ---
 
+## 10. Persisted run bundle — replay from disk (audit / chain-of-custody)
+
+```powershell
+python -m harness run --bundle runs\RUN-demo       # write a self-contained bundle directory
+python -m harness validate-run runs\RUN-demo        # replay the gate from disk — no model calls
+```
+**Expect:** `run --bundle` writes `runs\RUN-demo\` with `gate_decision.json`, `findings.json`,
+`evidence_manifest.json`, `replay_manifest.json`, `policy_manifest.json`, `scenario_manifest.json`,
+`result_bundle.json`, and `evidence\` (per-turn **input + output**, content-hashed). `validate-run`
+→ **VALIDATE-RUN [PASS]**, `replayed gate: block`, chain-of-custody OK — reproduced in a **separate
+process** from evidence alone.
+
+**Tamper test** (proves the evidence is load-bearing):
+```powershell
+Add-Content runs\RUN-demo\evidence\T-0002.target.txt "TAMPERED"
+python -m harness validate-run runs\RUN-demo         # -> VALIDATE-RUN [FAIL], exit 1
+```
+**Expect:** **FAIL** — `chain-of-custody: FAILED` (a modified response no longer matches its stored
+hash). Regenerate the report from the persisted bundle with
+`python -m harness dashboard --in runs\RUN-demo\result_bundle.json`.
+
+---
+
 ## Validation checklist
 
 | # | Check | Command | Expected | ✔ |
 |---|---|---|---|---|
-| 1 | Unit tests | `pytest -q` | `24 passed` | ☐ |
+| 1 | Unit tests | `pytest -q` | `41 passed` | ☐ |
 | 1 | Invariants | `harness verify` | `ALL PASS` (10) | ☐ |
 | 2 | Vulnerable | `harness run` | BLOCK · 8 · replay PASS | ☐ |
 | 2 | Hardened | `harness run --profile hardened` | APPROVE · 0 | ☐ |
@@ -169,6 +192,8 @@ the factory refuses if equal). This is the recorded **Gate G1** result (`harness
 | 7 | Probe (good) | `harness probe --prompt "…support hours?"` | PASS | ☐ |
 | 8 | Inventory | `harness plugins` | 18/23 runnable | ☐ |
 | 9 | Real model | `harness run --provider litellm` | APPROVE · basis real | ☐ |
+| 10 | Run bundle | `run --bundle runs\RUN-demo` + `validate-run runs\RUN-demo` | PASS · block · custody OK | ☐ |
+| 10 | Tamper | edit an evidence file + `validate-run` | FAIL · custody mismatch · exit 1 | ☐ |
 
 ---
 

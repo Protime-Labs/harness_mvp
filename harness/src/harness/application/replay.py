@@ -28,7 +28,8 @@ def _replay_finding(severity: str, detector_positive: bool, fail_on_severity: st
 
 def replay_mode_a(manifest: List[dict], verdicts: List[dict], store, detectors: Dict[str, callable],
                   harness_detectors: Dict[str, List[str]], evaluator_status: dict | None = None,
-                  fail_on_severity: str = "high", cost_status: dict | None = None):
+                  fail_on_severity: str = "high", cost_status: dict | None = None,
+                  quarantine: str = "allow"):
     """`harness_detectors` maps harness id -> list of detector names (from the specs)."""
     by_cand: Dict[str, list] = {}
     for v in verdicts:
@@ -47,6 +48,6 @@ def replay_mode_a(manifest: List[dict], verdicts: List[dict], store, detectors: 
 
     # rebuild the gate over the replayed findings (control plane, no LLM). Run-level control inputs
     # (evaluator calibration, cost status) are supplied so the replayed decision matches the live one.
-    gate = gate_decision("allow", [{"status": "completed"}], fake_findings, True,
+    gate = gate_decision(quarantine, [{"status": "completed"}], fake_findings, True,
                          evaluator_status=evaluator_status, cost_status=cost_status)
     return sorted(findings), gate

@@ -32,15 +32,21 @@ class FileEvidenceStore:
 
     def capture_turn(self, hr_id: str, role: str, agent: str, text: str,
                      adapter_name: str, model: Optional[dict] = None,
-                     tokens: Optional[dict] = None) -> Dict[str, Any]:
+                     tokens: Optional[dict] = None, input_text: Optional[str] = None) -> Dict[str, Any]:
         self.turn_no += 1
         tid = f"T-{self.turn_no:04d}"
         path = self._write(f"turns/{tid}.{role}.txt", text)
-        return {
+        rec: Dict[str, Any] = {
             "turn_id": tid, "harness_run_id": hr_id, "role": role, "agent": agent,
             "model": model or {"provider": adapter_name}, "output_hash": sha256_hex(text),
             "output_uri": path, "tokens": tokens or {}, "cost_usd": 0.0, "ts": now_iso(),
         }
+        # Bind the input (the prompt that produced this output) so replay verifies BOTH sides of the
+        # turn's chain of custody, not only the response (R6/A3 full chain).
+        if input_text is not None:
+            rec["input_uri"] = self._write(f"turns/{tid}.{role}.input.txt", input_text)
+            rec["input_hash"] = sha256_hex(input_text)
+        return rec
 
     def capture_verdict(self, hr_id: str, cand_id: str, judge_name: str,
                         lens: str, v: dict) -> Dict[str, Any]:

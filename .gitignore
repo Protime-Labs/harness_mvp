@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Harness run artifacts (persisted bundles, dashboards, evidence dumps)
+runs/
+**/runs/
+harness_dashboard.html
+*.result.json

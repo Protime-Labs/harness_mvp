@@ -94,7 +94,7 @@ class BuiltinDriver:
                 cost_usd += turn_cost
             t_atk = store.capture_turn(hr_id, "attacker", f"attacker.{spec.id}", sc.attack, adapter.name)
             t_tgt = store.capture_turn(hr_id, "target", "asset-under-test", resp["text"], adapter.name,
-                                       model=resp["model"], tokens=resp["tokens"])
+                                       model=resp["model"], tokens=resp["tokens"], input_text=sc.attack)
             turns += [t_atk, t_tgt]
             cand = f"{spec.id}:{sc.id}"
             manifest.append({"harness": spec.id, "scenario_id": sc.id, "cand": cand,
