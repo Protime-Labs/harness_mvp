@@ -20,6 +20,7 @@ from .. import __version__
 from ..domain.invariants import INVARIANTS
 from ..application.acceptance import run_invariant_suite
 from ..application.orchestrator import run_assurance
+from ..application.readiness import assess_enterprise_readiness
 from ..registry import load_harnesses
 from . import factory
 from .report import render_report
@@ -44,6 +45,14 @@ def _overrides(args) -> dict:
         ov["DRIVER"] = args.driver
     if getattr(args, "pack", None):
         ov["PACK"] = args.pack
+    if getattr(args, "target_url", None):
+        ov["HTTP_TARGET_URL"] = args.target_url
+    if getattr(args, "response_path", None):
+        ov["HTTP_RESPONSE_PATH"] = args.response_path
+    if getattr(args, "target_header", None):
+        ov["HTTP_HEADERS"] = args.target_header
+    if getattr(args, "offline_judge", False):
+        ov["OFFLINE_JUDGE"] = True
     return ov
 
 
@@ -55,7 +64,11 @@ def _load_json(path: Optional[str], default: dict) -> dict:
 
 
 def _assemble(args):
-    ctx = factory.build_context(config_dir=args.config, overrides=_overrides(args))
+    ctx = factory.build_context(
+        config_dir=args.config,
+        overrides=_overrides(args),
+        scenario_path=getattr(args, "scenarios", None),
+    )
     use_case = _load_json(getattr(args, "usecase", None), DEFAULT_USE_CASE)
     asset = _load_json(getattr(args, "asset", None), DEFAULT_ASSET)
     bundle = run_assurance(
@@ -75,11 +88,39 @@ def _names(config_dir: Optional[str]) -> Dict[str, str]:
     return {hid: s.name for hid, s in load_harnesses(config_dir).items()}
 
 
+def _scenario_count(ctx: dict) -> int:
+    return sum(len(s.scenarios) for hid, s in ctx["specs"].items() if hid in ctx["cfg"]["PHASE1_ATTACK"])
+
+
+def _print_preflight(ctx: dict, bundle: dict) -> None:
+    cfg = ctx["cfg"]
+    rc = bundle.get("run_config", {})
+    print("ENVIRONMENT READINESS")
+    print(f"  target provider : {rc.get('provider_mode')} ({rc.get('target_model')})")
+    print(f"  judge           : {rc.get('judge_model')}")
+    print(f"  driver          : {cfg.get('DRIVER')}")
+    print(f"  detectors       : {', '.join(sorted(ctx['detectors'].keys()))}")
+    print(f"  scenarios       : {_scenario_count(ctx)}" +
+          (f" from {ctx['scenario_path']}" if ctx.get("scenario_path") else " from built-in/config suite"))
+    print(f"  evidence store  : {bundle.get('evidence_root')}")
+    print(f"  enterprise deps : {', '.join(bundle.get('enterprise_readiness', {}).get('missing', [])) or 'none missing'}")
+    print("\nRUN PLAN")
+    print(f"  use case        : {bundle['use_case'].get('name')}")
+    print(f"  risk tier       : {bundle['context'].get('tier')} ({bundle['context'].get('score')})")
+    print(f"  pack            : {bundle['context'].get('pack_tier')}")
+    print(f"  harnesses       : {', '.join(bundle['harness_results'].keys())}")
+    b = cfg.get("BUDGET", {})
+    print(f"  budget          : turns={b.get('max_turns')} tokens={b.get('max_tokens')} "
+          f"cost=${b.get('max_cost_usd')} time={b.get('max_wall_clock_s')}s")
+    print("")
+
+
 def cmd_run(args) -> int:
     ctx, bundle = _assemble(args)
     if args.json:
         print(json.dumps(_serializable(bundle), indent=2, default=str))
     else:
+        _print_preflight(ctx, bundle)
         print(render_report(bundle, ctx["specs"]))
         print(f"\nEVIDENCE: {bundle['evidence_root']}")
     if getattr(args, "repeat", None) and args.repeat > 1:
@@ -150,6 +191,8 @@ def cmd_plugins(args) -> int:
 
 def cmd_verify(args) -> int:
     ctx, bundle = _assemble(args)
+    if not getattr(args, "json", False):
+        _print_preflight(ctx, bundle)
     print(render_report(bundle, ctx["specs"]))
     print("\n" + "=" * 52)
     print(f"{'INVARIANT CHECK':38s} RESULT")
@@ -210,7 +253,11 @@ def cmd_probe(args) -> int:
         print("Provide --prompt \"your text\"  (or --serve [PORT] for the interactive dashboard)")
         return 2
     from ..application.probe import run_probe
-    ctx = factory.build_context(config_dir=args.config, overrides=_overrides(args))
+    ctx = factory.build_context(
+        config_dir=args.config,
+        overrides=_overrides(args),
+        scenario_path=getattr(args, "scenarios", None),
+    )
     lenses = detector_names = None
     if args.harness:
         spec = ctx["specs"][args.harness]
@@ -245,6 +292,58 @@ def cmd_info(args) -> int:
     return 0
 
 
+def cmd_doctor(args) -> int:
+    from .capabilities import probe, summarize
+    try:
+        ctx = factory.build_context(
+            config_dir=args.config,
+            overrides=_overrides(args),
+            scenario_path=getattr(args, "scenarios", None),
+        )
+        error = None
+    except Exception as exc:
+        ctx, error = None, exc
+    caps = probe()
+    s = summarize(caps)
+    print(f"enterprise-harness doctor v{__version__}")
+    print(f"capabilities     : {s['available']} available / {s['installable']} installable / "
+          f"{s['stub']} stub / {s['enterprise']} enterprise")
+    if error:
+        print(f"composition      : FAIL - {error}")
+        return 1
+    cfg = ctx["cfg"]
+    print("composition      : PASS")
+    print(f"provider         : {cfg['PROVIDER_MODE']}")
+    if cfg["PROVIDER_MODE"] == "http":
+        print(f"http target      : {'configured' if cfg.get('HTTP_TARGET_URL') else 'missing'}")
+    elif cfg["PROVIDER_MODE"] == "litellm":
+        keys = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "AZURE_API_KEY", "AWS_ACCESS_KEY_ID"]
+        print(f"provider key     : {'present' if any(os.environ.get(k) for k in keys) else 'missing'}")
+    print(f"judge panel      : {', '.join(getattr(j, 'model', 'offline-sim') if j else 'offline-sim' for j in ctx['judge_adapters'])}")
+    print(f"detectors        : {', '.join(sorted(ctx['detectors']))}")
+    print(f"scenario source  : {ctx.get('scenario_path') or 'built-in/config suite'}")
+    print(f"scenario count   : {_scenario_count(ctx)}")
+    print(f"evidence store   : {type(ctx['store']).__name__}")
+    readiness = assess_enterprise_readiness(
+        ctx["policy"],
+        scenario_path=ctx.get("scenario_path"),
+        store=ctx["store"],
+        detectors=ctx["detectors"],
+        driver_name=getattr(ctx["driver"], "name", None),
+        specs=ctx["specs"],
+    )
+    print(f"enterprise ready : {'yes' if not readiness['missing'] else 'no'}")
+    for item in readiness["missing"]:
+        print(f"  missing        : {item}")
+    return 0 if not readiness["hard_blockers"] else 1
+
+
+def cmd_demo_target(args) -> int:
+    from .demo_target import serve_demo_target
+    serve_demo_target(port=args.serve, profile=args.profile, open_browser=args.open)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="harness", description="Enterprise AI Assurance Harness (MVP)")
     p.add_argument("--version", action="version", version=f"enterprise-harness {__version__}")
@@ -252,7 +351,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     def common(sp):
         sp.add_argument("--config", help="config directory (default: <repo>/config)")
-        sp.add_argument("--provider", choices=["mock", "litellm"], help="model provider (default: config)")
+        sp.add_argument("--provider", choices=["mock", "litellm", "http"], help="model provider (default: config)")
         sp.add_argument("--profile", choices=["vulnerable", "hardened"], help="mock target profile")
         sp.add_argument("--presidio", action="store_true", help="use Presidio PII/CPNI detectors")
         sp.add_argument("--detoxify", action="store_true", help="add the Detoxify toxicity detector")
@@ -262,6 +361,13 @@ def build_parser() -> argparse.ArgumentParser:
                         help="harness pack (default: foundational)")
         sp.add_argument("--usecase", help="path to a use-case JSON (overrides the default)")
         sp.add_argument("--asset", help="path to an asset JSON (overrides the default)")
+        sp.add_argument("--scenarios", help="JSON/JSONL/CSV scenario corpus keyed by harness")
+        sp.add_argument("--target-url", help="HTTP target URL for --provider http")
+        sp.add_argument("--response-path", help="JSON response path for --provider http (default: text)")
+        sp.add_argument("--target-header", action="append", metavar="KEY=VALUE",
+                        help="HTTP header for --provider http (repeatable)")
+        sp.add_argument("--offline-judge", action="store_true",
+                        help="demo-only: simulate semantic judge when no real judge key is available")
 
     r = sub.add_parser("run", help="run the assurance chain")
     common(r)
@@ -289,6 +395,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     pl = sub.add_parser("plugins", help="inventory plugins/dependencies runnable in the lab")
     pl.set_defaults(func=cmd_plugins)
+
+    doc = sub.add_parser("doctor", help="preflight the environment and enterprise readiness")
+    common(doc)
+    doc.set_defaults(func=cmd_doctor)
+
+    tgt = sub.add_parser("demo-target", help="serve a local HTTP target at /evaluate for demos")
+    tgt.add_argument("--serve", type=int, default=8000, metavar="PORT",
+                     help="port to bind (default: 8000)")
+    tgt.add_argument("--profile", choices=["vulnerable", "hardened"], default="vulnerable",
+                     help="demo target behavior")
+    tgt.add_argument("--open", action="store_true", help="open /evaluate in a browser")
+    tgt.set_defaults(func=cmd_demo_target)
 
     pr = sub.add_parser("probe", help="send one prompt through the chain with live indicators")
     common(pr)

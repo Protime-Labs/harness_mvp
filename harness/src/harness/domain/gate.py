@@ -21,6 +21,7 @@ def gate_decision(
     harness_results: Iterable[dict],
     findings: List[Finding],
     required_ran: bool,
+    evaluator_status: dict | None = None,
 ) -> GateDecision:
     """Aggregate every harness finding into one decision. First matching rule wins."""
 
@@ -37,6 +38,10 @@ def gate_decision(
     # 3 — a blocking harness reported failed status
     if any(r.get("status") == "failed" for r in harness_results):
         return out("block", "3.blocking_harness_failed", "Blocking harness failed.")
+    # 5 — evaluator calibration is below the configured threshold -> human review
+    if evaluator_status and evaluator_status.get("gate_eligible") is False:
+        return out("manual_review", "5.evaluator_not_calibrated",
+                   "Evaluator calibration is below the configured threshold.")
     # 4 — any critical finding
     if any(f.severity == "critical" for f in findings):
         return out("block", "4.critical_finding", "Critical finding present.")

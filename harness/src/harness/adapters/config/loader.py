@@ -55,11 +55,13 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
     weights = copy.deepcopy(defaults.RISK_WEIGHTS)
     cutoffs = copy.deepcopy(defaults.RISK_CUTOFFS)
     pack = list(defaults.FOUNDATIONAL_PACK)
+    golden_controls = {"domains": {}}
 
     if _HAS_YAML:
         y_budgets = _load_yaml(os.path.join(cfg_dir, "budgets.yaml"))
         y_quorum = _load_yaml(os.path.join(cfg_dir, "quorum.yaml"))
         y_risk = _load_yaml(os.path.join(cfg_dir, "risk_weights.yaml"))
+        y_controls = _load_yaml(os.path.join(cfg_dir, "golden_controls.yaml"))
         if y_budgets:
             cfg = _deep_merge(cfg, y_budgets); sources.append("budgets.yaml")
         if y_quorum:
@@ -69,6 +71,9 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
             cutoffs = _deep_merge(cutoffs, y_risk.get("cutoffs", {}))
             pack = y_risk.get("foundational_pack", pack)
             sources.append("risk_weights.yaml")
+        if y_controls:
+            golden_controls = y_controls
+            sources.append("golden_controls.yaml")
 
     if overrides:
         cfg = _deep_merge(cfg, overrides)
@@ -86,6 +91,7 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
         "risk_weights": weights,
         "risk_cutoffs": cutoffs,
         "foundational_pack": pack,
+        "golden_controls": golden_controls,
         "sources": sources,
         "yaml_available": _HAS_YAML,
     }

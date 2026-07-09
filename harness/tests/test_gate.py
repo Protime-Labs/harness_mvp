@@ -20,6 +20,7 @@ def test_gate_precedence():
     assert gate_decision("block", [], [], True).decision == "block"           # quarantine
     assert gate_decision("allow", [], [], False).decision == "block"          # required not run (fail closed)
     assert gate_decision("allow", [{"status": "failed"}], [], True).decision == "block"
+    assert gate_decision("allow", [], [], True, evaluator_status={"gate_eligible": False}).decision == "manual_review"
     assert gate_decision("allow", [], [_f("critical")], True).decision == "block"
     assert gate_decision("allow", [], [_f("high")], True).decision == "warn"
     assert gate_decision("allow", [], [_f("low")], True).decision == "approve"

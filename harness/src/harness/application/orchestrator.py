@@ -19,6 +19,7 @@ from .calibration import calibrate
 from .judge_calibration import calibrate_judge
 from .contextualize import contextualize
 from .governance import run_governance_finding_lifecycle
+from .readiness import assess_enterprise_readiness
 from .remediation import remediate
 from .replay import replay_mode_a
 from .selection import select
@@ -61,35 +62,53 @@ def run_assurance(
     # H5.1 governance self-check (verifies the others; does NOT decide the gate)
     gov = run_governance_finding_lifecycle(all_findings, all_verdicts, store)
 
-    # W8 gate — the single deterministic decision (control plane, no LLM)
-    required_ran = all(results[h]["status"] == "completed" for h in cfg["PHASE1_ATTACK"])
-    gate = gate_decision("allow", list(results.values()), all_findings, required_ran)
-
     # C1 calibration per harness (scenario-based; meaningful vs a KNOWN-vulnerable target like the mock)
     cal = {hid: calibrate(specs[hid], adapter, system_prompt, cfg, detectors, judge_adapter=judge_adapter)
            for hid in cfg["PHASE1_ATTACK"]}
     # DR-11 verdict-level judge calibration (target-independent; the real-path gate-eligibility basis)
     judge_cal = calibrate_judge(judge_adapter or adapter, cfg, detectors)
 
+    # W8 gate — the single deterministic decision (control plane, no LLM)
+    required_ran = all(results[h]["status"] == "completed" for h in cfg["PHASE1_ATTACK"])
+    gate = gate_decision("allow", list(results.values()), all_findings, required_ran,
+                         evaluator_status=judge_cal)
+
     # Mode-A replay (C4) — reproduce findings + gate from evidence alone
     harness_detectors = {hid: specs[hid].detectors for hid in cfg["PHASE1_ATTACK"]}
     orig = sorted((f.id, f.severity, f.category) for f in all_findings)
-    replay_findings, replay_gate = replay_mode_a(all_manifest, all_verdicts, store, detectors, harness_detectors)
+    replay_findings, replay_gate = replay_mode_a(
+        all_manifest, all_verdicts, store, detectors, harness_detectors, evaluator_status=judge_cal)
     replay_ok = (orig == replay_findings) and (gate.decision == replay_gate.decision)
 
     # W9 remediation (advisory)
     remediation = remediate(all_findings)
 
     # self-describing run config (audit + dashboard inputs)
-    is_real = cfg["PROVIDER_MODE"] == "litellm"
+    is_real = cfg["PROVIDER_MODE"] in ("litellm", "http")
+    if cfg["PROVIDER_MODE"] == "litellm":
+        target_model = cfg["LITELLM_MODEL"]
+    elif cfg["PROVIDER_MODE"] == "http":
+        target_model = cfg.get("HTTP_TARGET_URL") or "http-target"
+    else:
+        target_model = "mock-1"
+    judge_models = list(cfg.get("JUDGE_MODELS") or []) or [cfg["JUDGE_MODEL"]]
+    judge_model = ("offline sim (content=real, semantic=simulated)" if cfg.get("OFFLINE_JUDGE") or not is_real
+                   else ", ".join(judge_models))
     run_config = {
         "provider_mode": cfg["PROVIDER_MODE"],
-        "target_model": cfg["LITELLM_MODEL"] if is_real else "mock-1",
-        "judge_model": cfg["JUDGE_MODEL"] if is_real else "offline sim (content=real, semantic=simulated)",
+        "target_model": target_model,
+        "judge_model": judge_model,
         "quorum_n": cfg["QUORUM_N"], "quorum_rule": cfg["QUORUM_RULE"],
         "fail_on_severity": cfg["FAIL_ON_SEVERITY"], "seed": cfg["SEED"],
         "budget": cfg["BUDGET"], "use_presidio": cfg.get("USE_PRESIDIO", False),
     }
+    readiness = assess_enterprise_readiness(
+        policy,
+        store=store,
+        detectors=detectors,
+        driver_name=getattr(driver, "name", None),
+        specs=specs,
+    )
 
     return {
         "asset": asset,
@@ -101,6 +120,7 @@ def run_assurance(
         "harness_results": results,
         "governance": gov,
         "gate": asdict(gate),
+        "enterprise_readiness": readiness,
         "calibration": cal,
         "judge_calibration": judge_cal,
         "replay": {"ok": replay_ok, "findings": replay_findings, "gate": asdict(replay_gate)},

@@ -29,6 +29,8 @@ CATALOGUE = [
     {"group": "Model providers (B2 · ModelPort)", "id": "litellm", "name": "LiteLLM — 100+ real providers",
      "seam": "ModelPort", "kind": "optional-pip", "wired": True, "extra": "providers", "modules": ["litellm"],
      "env": ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "AZURE_API_KEY"], "cite": "adapters/model/litellm_adapter.py"},
+    {"group": "Model providers (B2 · ModelPort)", "id": "http", "name": "HTTP app/agent endpoint",
+     "seam": "ModelPort", "kind": "builtin", "wired": True, "cite": "adapters/model/http_adapter.py"},
     {"group": "Model providers (B2 · ModelPort)", "id": "ollama", "name": "Ollama local models (via LiteLLM)",
      "seam": "ModelPort", "kind": "stub", "wired": False, "cite": "local runtime + pulled model; route via LiteLLM"},
     {"group": "Model providers (B2 · ModelPort)", "id": "janus", "name": "Janus (role TBD)",

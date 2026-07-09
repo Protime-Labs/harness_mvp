@@ -16,7 +16,7 @@ from ..domain.gate import gate_decision
 
 
 def replay_mode_a(manifest: List[dict], verdicts: List[dict], store, detectors: Dict[str, callable],
-                  harness_detectors: Dict[str, List[str]]):
+                  harness_detectors: Dict[str, List[str]], evaluator_status: dict | None = None):
     """`harness_detectors` maps harness id -> list of detector names (from the specs)."""
     by_cand: Dict[str, list] = {}
     for v in verdicts:
@@ -33,5 +33,6 @@ def replay_mode_a(manifest: List[dict], verdicts: List[dict], store, detectors: 
 
     # rebuild the gate over the replayed findings (control plane, no LLM)
     fake_findings = [type("F", (), {"severity": s})() for _, s, _ in findings]
-    gate = gate_decision("allow", [{"status": "completed"}], fake_findings, True)
+    gate = gate_decision("allow", [{"status": "completed"}], fake_findings, True,
+                         evaluator_status=evaluator_status)
     return sorted(findings), gate

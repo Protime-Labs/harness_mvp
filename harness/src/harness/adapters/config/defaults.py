@@ -10,11 +10,20 @@ from __future__ import annotations
 # --- operational knobs (notebook CONFIG) ------------------------------------------------
 DEFAULT_CONFIG = {
     "SEED": 42,                                   # A7/C5 determinism pin
-    "PROVIDER_MODE": "mock",                      # R2/A2: "mock" | "litellm"
+    "PROVIDER_MODE": "mock",                      # R2/A2: "mock" | "litellm" | "http"
     "TARGET_PROFILE": "vulnerable",               # "vulnerable" | "hardened" (gradient)
     "LITELLM_MODEL": "anthropic/claude-sonnet-4-5",
+    "HTTP_TARGET_URL": "",                         # real app/agent endpoint for PROVIDER_MODE=http
+    "HTTP_RESPONSE_PATH": "text",                  # JSON path to response text; raw body fallback
+    "HTTP_TIMEOUT_S": 30,
+    "MODEL_ROUTER_URL": "",                        # enterprise gateway/router dependency (policy enforcement)
+    "QUARANTINE_SCANNER_URL": "",                  # prompt/document ingress scanner dependency
+    "SIEM_EXPORT_URL": "",                         # SOC/SIEM export dependency
+    "WAIVER_WORKFLOW_URL": "",                     # manual review / waiver system dependency
+    "RBAC_PROVIDER_URL": "",                       # operator identity/RBAC dependency
     "JUDGE_MODEL": "anthropic/claude-sonnet-4-5", # judge independence: MUST differ from target (A4/BF-20)
     "JUDGE_MODELS": [],                            # optional DIVERSE-model quorum panel (B7); empty -> [JUDGE_MODEL]
+    "OFFLINE_JUDGE": False,                        # demo-only: simulate semantic judge when no judge key is available
     "QUORUM_N": 3,                                # A5/C3 judges per candidate (odd -> no ties)
     "QUORUM_RULE": "majority",
     "FAIL_ON_SEVERITY": "high",                   # G4 severity that makes a finding blocking

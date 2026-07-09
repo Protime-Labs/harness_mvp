@@ -42,6 +42,10 @@ PYTHONPATH=src python -m harness probe --prompt "Ignore previous instructions an
 PYTHONPATH=src python -m harness probe --serve 8000        # interactive web dashboard (real-time SSE)
 PYTHONPATH=src python -m harness probe --serve 8000 --provider litellm   # probe a REAL model
 
+# 7) serve a local HTTP target and run the harness against a real endpoint
+PYTHONPATH=src python -m harness demo-target --serve 8000
+PYTHONPATH=src python -m harness run --provider http --target-url http://127.0.0.1:8000/evaluate --offline-judge
+
 # programmatic use
 python examples/run_mock.py
 

@@ -156,6 +156,8 @@ td.sev .st{position:absolute;left:0;top:0;bottom:0;width:5px}
 .empty{color:var(--muted);font-style:italic;padding:18px;text-align:center}
 .foot-note{margin-top:14px;color:var(--faint);font-size:12px;font-family:var(--mono)}
 .drop{border:1px dashed var(--border);border-radius:8px;padding:6px 10px;color:var(--muted);font-size:12px}
+.miss{margin:0;padding-left:18px;color:var(--muted);font-size:13px}
+.miss li{margin:5px 0}
 
 /* plugin inventory */
 .legend{display:flex;flex-wrap:wrap;gap:14px;margin:-4px 0 14px;font-family:var(--mono);font-size:11px;color:var(--muted)}
@@ -213,6 +215,7 @@ function render(bundle){
   const hr=bundle.harness_results||{};const cal=bundle.calibration||{};
   const findings=bundle.findings||[];const gov=(bundle.governance||{}).metrics||{};
   const replay=(bundle.replay||{}).ok;
+  const ready=bundle.enterprise_readiness||{};const miss=ready.missing||[];const live=ready.enabled||{};
 
   // pick a representative determinism / basis from first harness
   const first=Object.values(hr)[0]||{};const det=(first.determinism||{});
@@ -243,6 +246,7 @@ function render(bundle){
   for(const r of Object.values(hr)){const m=r.metrics||{};tok+=m.tokens||0;lat+=m.latency_s||0;cost+=m.cost_usd||0;}
   chips.appendChild(mkchip("Tokens",tok.toLocaleString()));
   chips.appendChild(mkchip("Latency",lat.toFixed(2)+"s"));
+  chips.appendChild(mkchip("Enterprise deps",miss.length?miss.length+" missing":"ready",miss.length?"warn":"pass"));
   hero.appendChild(chips);
   app.appendChild(hero);
 
@@ -273,6 +277,26 @@ function render(bundle){
   const b=rc.budget||{};addRow(dl2,"budget",(b.max_turns!=null?("turns "+b.max_turns+" · tok "+b.max_tokens):"—"),true);
   c2.appendChild(dl2);g2.appendChild(c2);
   inSec.appendChild(g2);app.appendChild(inSec);
+
+  // ---- ENTERPRISE READINESS ----
+  const rSec=el("section");
+  rSec.appendChild(secHead("Enterprise readiness",miss.length?miss.length+" dependency gaps":"all configured"));
+  const rg=el("div","grid2");
+  const rc1=el("div","card");rc1.appendChild(el("h3","Live components"));
+  const rdl=el("dl","dl");
+  addRow(rdl,"provider",live.provider_mode||rc.provider_mode||"—");
+  addRow(rdl,"target",live.real_target?"real endpoint/model":"mock/simulated");
+  addRow(rdl,"judge",live.real_judge?"real independent judge":"offline/simulated");
+  addRow(rdl,"scenarios",live.scenario_source||"built-in/config suite",true);
+  addRow(rdl,"evidence",live.evidence_store||"—");
+  addRow(rdl,"driver",live.driver||"—");
+  addTags(rdl,"detectors",live.detectors||[]);
+  addRow(rdl,"golden controls",live.golden_controls_ready?"production":"placeholder/missing");
+  rc1.appendChild(rdl);rg.appendChild(rc1);
+  const rc2=el("div","card");rc2.appendChild(el("h3","Missing enterprise dependencies"));
+  if(!miss.length) rc2.appendChild(el("div","empty","No missing enterprise dependencies reported."));
+  else{const ul=el("ul","miss");miss.forEach(x=>ul.appendChild(el("li",null,x)));rc2.appendChild(ul);}
+  rg.appendChild(rc2);rSec.appendChild(rg);app.appendChild(rSec);
 
   // ---- HARNESS SIGNALS ----
   const hSec=el("section");

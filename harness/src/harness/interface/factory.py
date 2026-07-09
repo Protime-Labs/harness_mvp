@@ -27,6 +27,14 @@ def make_target_adapter(cfg: dict):
     if cfg["PROVIDER_MODE"] == "litellm":
         from ..adapters.model.litellm_adapter import LiteLLMAdapter
         return LiteLLMAdapter(cfg["LITELLM_MODEL"])
+    if cfg["PROVIDER_MODE"] == "http":
+        from ..adapters.model.http_adapter import HttpTargetAdapter, parse_headers
+        return HttpTargetAdapter(
+            cfg.get("HTTP_TARGET_URL", ""),
+            response_path=cfg.get("HTTP_RESPONSE_PATH", "text"),
+            timeout_s=cfg.get("HTTP_TIMEOUT_S", 30),
+            headers=parse_headers(cfg.get("HTTP_HEADERS")),
+        )
     return MockAdapter(seed=cfg["SEED"], profile=cfg.get("TARGET_PROFILE", "vulnerable"))
 
 
@@ -34,7 +42,7 @@ def make_judge_adapters(cfg: dict) -> list:
     """Build the judge panel (A4/BF-20). Mock path -> [None] (offline sim). Real path -> one
     LiteLLMAdapter per JUDGE_MODELS entry (a DIVERSE-model quorum, B7); each must differ from the
     target. JUDGE_MODELS empty -> [JUDGE_MODEL]."""
-    if cfg["PROVIDER_MODE"] != "litellm":
+    if cfg.get("OFFLINE_JUDGE") or cfg["PROVIDER_MODE"] not in ("litellm", "http"):
         return [None]
     models = list(cfg.get("JUDGE_MODELS") or []) or [cfg["JUDGE_MODEL"]]
     from ..adapters.model.litellm_adapter import LiteLLMAdapter
@@ -88,17 +96,20 @@ def make_driver(cfg: dict, detectors: Dict[str, Callable], judge_adapter=None,
                          judge_adapter=judge_adapter, judge_adapters=judge_adapters)
 
 
-def build_context(config_dir: Optional[str] = None, overrides: Optional[dict] = None) -> dict:
+def build_context(config_dir: Optional[str] = None, overrides: Optional[dict] = None,
+                  scenario_path: Optional[str] = None) -> dict:
     """One call that assembles everything the orchestrator / acceptance suite needs."""
     policy = load_policy(config_dir, overrides)
+    policy["scenario_path"] = scenario_path
     cfg = policy["config"]
     detectors = make_detectors(cfg)
     judge_adapters = make_judge_adapters(cfg)
     judge_adapter = judge_adapters[0]
+    specs = load_harnesses(config_dir, scenario_path=scenario_path)
     return {
         "policy": policy,
         "cfg": cfg,
-        "specs": load_harnesses(config_dir),
+        "specs": specs,
         "registry_map": REGISTRY,
         "golden_control_domains": GOLDEN_CONTROL_DOMAINS,
         "detectors": detectors,
@@ -108,6 +119,7 @@ def build_context(config_dir: Optional[str] = None, overrides: Optional[dict] = 
         "judge_adapters": judge_adapters,
         "store": make_store(),
         "driver": make_driver(cfg, detectors, judge_adapter, judge_adapters=judge_adapters),
+        "scenario_path": scenario_path,
         # factories for the acceptance suite (fresh instances per re-run)
         "make_store": make_store,
         "make_adapter": lambda: make_target_adapter(cfg),

@@ -56,9 +56,31 @@ class BuiltinDriver:
         b = cfg["BUDGET"]
         status = "completed"
         incomplete = False
+        budget_reason = None
+
+        def _cost_capacity_exhausted() -> bool:
+            max_cost = float(b.get("max_cost_usd", float("inf")))
+            if max_cost <= 0:
+                return cost_usd > 0
+            return cost_usd >= max_cost
+
+        def _cost_breached() -> bool:
+            return cost_usd > float(b.get("max_cost_usd", float("inf")))
+
+        def _budget_reason(require_next_capacity: bool = True):
+            if turn_no >= b["max_turns"]:
+                return "max_turns"
+            if tokens >= b["max_tokens"]:
+                return "max_tokens"
+            if _cost_breached() or (require_next_capacity and _cost_capacity_exhausted()):
+                return "max_cost_usd"
+            if (time.time() - t0) > b["max_wall_clock_s"]:
+                return "max_wall_clock_s"
+            return None
 
         for i, sc in enumerate(spec.scenarios):
-            if turn_no >= b["max_turns"] or tokens >= b["max_tokens"] or (time.time() - t0) > b["max_wall_clock_s"]:
+            budget_reason = _budget_reason()
+            if budget_reason:
                 status, incomplete = "budget_exceeded", True
                 break
             resp = adapter.invoke("target", _build_attack(sc)["prompt"], system=self.system_prompt)
@@ -92,12 +114,17 @@ class BuiltinDriver:
                     policy_rule=f"POL-{spec.id}", evidence_uri=t_tgt["output_uri"],
                     recommendation="Add guardrail; re-test.", harness=spec.id,
                     standards=spec.standards, basis=basis))
+            budget_reason = _budget_reason(require_next_capacity=i < len(spec.scenarios) - 1)
+            if budget_reason and (i < len(spec.scenarios) - 1 or _cost_breached()):
+                status, incomplete = "budget_exceeded", True
+                break
 
         total = len(spec.scenarios)
         metrics = {"scenarios": total, "findings": len(findings),
                    "success_rate": round(len(findings) / max(total, 1), 2),
                    "tokens": tokens, "cost_usd": round(cost_usd, 4),
                    "latency_s": round(time.time() - t0, 3),
+                   "budget_reason": budget_reason if incomplete else None,
                    "judges": [getattr(j, "model", None) or getattr(j, "name", "sim") for j in panel]}
         ev_basis = ("real (LLM judge reads responses + real-content detectors)" if real
                     else "simulated (offline: content detectors are REAL; semantic verdicts simulated from labels)")
@@ -112,7 +139,8 @@ class BuiltinDriver:
                 "seed": cfg["SEED"],
                 "quorum": {"min_judges": cfg["QUORUM_N"], "rule": cfg["QUORUM_RULE"]},
                 "determinism_class": ("bounded" if real else "deterministic"),
-                "budget": {**cfg["BUDGET"], "status": "exceeded" if incomplete else "within"},
+                "budget": {**cfg["BUDGET"], "status": "exceeded" if incomplete else "within",
+                           "reason": budget_reason if incomplete else None},
             },
         }
         return result, turns, verdicts, manifest, findings

@@ -9,6 +9,8 @@ Faithful to notebook §5 `HARNESSES`.
 """
 from __future__ import annotations
 
+import csv
+import json
 import os
 from typing import Dict, List
 
@@ -24,6 +26,120 @@ except Exception:  # pragma: no cover
 def _spec(**kw) -> HarnessSpec:
     kw["scenarios"] = [Scenario(**s) for s in kw.get("scenarios", [])]
     return HarnessSpec(**kw)
+
+
+def _boolish(value):
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "success", "succeeded"}
+
+
+def _split(value):
+    if value is None or value == "":
+        return []
+    if isinstance(value, list):
+        return value
+    return [x.strip() for x in str(value).replace(",", "|").split("|") if x.strip()]
+
+
+def _scenario_from_row(row: dict) -> tuple[str, dict, dict]:
+    hid = row.get("harness") or row.get("harness_id") or row.get("hid")
+    if not hid:
+        raise ValueError("Scenario row requires 'harness' or 'harness_id'.")
+    sid = row.get("id") or row.get("scenario_id")
+    attack = row.get("attack") or row.get("prompt")
+    category = row.get("category")
+    if not (sid and attack and category):
+        raise ValueError(f"Scenario row for {hid} requires id, category, and attack/prompt.")
+    standards = row.get("standards") or {}
+    if isinstance(standards, str):
+        try:
+            standards = json.loads(standards)
+        except json.JSONDecodeError:
+            standards = {"owasp_llm": _split(row.get("owasp") or standards)}
+    elif row.get("owasp"):
+        standards = {**standards, "owasp_llm": _split(row.get("owasp"))}
+    scenario = {
+        "id": sid,
+        "title": row.get("title") or sid,
+        "category": category,
+        "attack": attack,
+        "label": _boolish(row.get("label")),
+    }
+    meta = {
+        "lenses": _split(row.get("lenses")),
+        "detectors": _split(row.get("detectors")),
+        "standards": standards,
+    }
+    return str(hid), scenario, meta
+
+
+def _load_rows(path: str) -> list[dict]:
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".jsonl":
+        rows = []
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    rows.append(json.loads(line))
+        return rows
+    if ext == ".csv":
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
+            return list(csv.DictReader(f))
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict) and "scenarios" in data:
+        return data["scenarios"]
+    raise ValueError("Scenario corpus must be JSON list, {'scenarios': [...]}, JSONL, or CSV.")
+
+
+def _apply_scenario_corpus(suite: Dict[str, HarnessSpec], path: str) -> Dict[str, HarnessSpec]:
+    rows = _load_rows(path)
+    grouped: Dict[str, list[dict]] = {}
+    meta_by_hid: Dict[str, dict] = {}
+    for row in rows:
+        hid, scenario, meta = _scenario_from_row(row)
+        grouped.setdefault(hid, []).append(scenario)
+        meta_by_hid.setdefault(hid, {"lenses": [], "detectors": [], "standards": {}})
+        for key in ("lenses", "detectors"):
+            for item in meta.get(key, []):
+                if item not in meta_by_hid[hid][key]:
+                    meta_by_hid[hid][key].append(item)
+        if meta.get("standards"):
+            meta_by_hid[hid]["standards"] = meta["standards"]
+
+    out = dict(suite)
+    for hid, scenarios in grouped.items():
+        base = out.get(hid)
+        meta = meta_by_hid[hid]
+        if base:
+            out[hid] = HarnessSpec(
+                id=base.id,
+                name=base.name,
+                category=base.category,
+                lenses=meta["lenses"] or base.lenses,
+                detectors=meta["detectors"] or base.detectors,
+                capability_tags=base.capability_tags,
+                standards=meta["standards"] or base.standards,
+                scenarios=[Scenario(**s) for s in scenarios],
+                governance=base.governance,
+            )
+        else:
+            out[hid] = HarnessSpec(
+                id=hid,
+                name=f"External Harness {hid}",
+                category="external",
+                lenses=meta["lenses"] or ["policy_compliance"],
+                detectors=meta["detectors"],
+                capability_tags=["external_corpus"],
+                standards=meta["standards"],
+                scenarios=[Scenario(**s) for s in scenarios],
+            )
+    return out
 
 
 # --- default suite (the Foundational core) ----------------------------------------------
@@ -150,7 +266,7 @@ def _config_dir() -> str:
     return os.path.normpath(os.path.join(here, "..", "..", "..", "config"))
 
 
-def load_harnesses(config_dir: str | None = None) -> Dict[str, HarnessSpec]:
+def load_harnesses(config_dir: str | None = None, scenario_path: str | None = None) -> Dict[str, HarnessSpec]:
     """Return the harness suite: defaults, overridden by config/harnesses.yaml if present."""
     suite = dict(_DEFAULT_SUITE)
     path = os.path.join(config_dir or _config_dir(), "harnesses.yaml")
@@ -160,6 +276,8 @@ def load_harnesses(config_dir: str | None = None) -> Dict[str, HarnessSpec]:
         for hid, raw in (data.get("harnesses") or {}).items():
             raw = dict(raw); raw.setdefault("id", hid)
             suite[hid] = _spec(**raw)
+    if scenario_path:
+        suite = _apply_scenario_corpus(suite, scenario_path)
     return suite
 
 

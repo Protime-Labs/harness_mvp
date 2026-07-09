@@ -11,6 +11,19 @@ JUDGE_THRESHOLDS:
   accuracy: 0.85
 
 # Provider + judge independence (A4/BF-20). On the real path JUDGE_MODEL must differ from LITELLM_MODEL.
-PROVIDER_MODE: mock                                  # mock | litellm
+PROVIDER_MODE: mock                                  # mock | litellm | http
 LITELLM_MODEL: anthropic/claude-haiku-4-5-20251001   # target under test
 JUDGE_MODEL:   anthropic/claude-sonnet-4-5           # independent judge (!= target)
+OFFLINE_JUDGE: false                                  # demo-only fallback when no judge key is available
+
+# HTTP target mode posts {role, prompt, system, metadata} to this endpoint and extracts the response text.
+HTTP_TARGET_URL: ""
+HTTP_RESPONSE_PATH: text
+HTTP_TIMEOUT_S: 30
+
+# Enterprise dependency slots. Empty means represented by the architecture but not connected.
+MODEL_ROUTER_URL: ""
+QUARANTINE_SCANNER_URL: ""
+SIEM_EXPORT_URL: ""
+WAIVER_WORKFLOW_URL: ""
+RBAC_PROVIDER_URL: ""
