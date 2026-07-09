@@ -52,6 +52,7 @@ class BuiltinDriver:
         turn_no = 0
         tokens = 0
         cost_usd = 0.0
+        cost_known = True   # flips false if any turn's price can't be determined (real-provider path)
         t0 = time.time()
         b = cfg["BUDGET"]
         status = "completed"
@@ -86,7 +87,11 @@ class BuiltinDriver:
             resp = adapter.invoke("target", _build_attack(sc)["prompt"], system=self.system_prompt)
             turn_no += 1
             tokens += resp["tokens"]["in"] + resp["tokens"]["out"]
-            cost_usd += resp.get("cost_usd", 0.0)
+            turn_cost = resp.get("cost_usd", 0.0)
+            if turn_cost is None:
+                cost_known = False          # price unavailable -> budget can't be verified (gate reviews)
+            else:
+                cost_usd += turn_cost
             t_atk = store.capture_turn(hr_id, "attacker", f"attacker.{spec.id}", sc.attack, adapter.name)
             t_tgt = store.capture_turn(hr_id, "target", "asset-under-test", resp["text"], adapter.name,
                                        model=resp["model"], tokens=resp["tokens"])
@@ -122,7 +127,7 @@ class BuiltinDriver:
         total = len(spec.scenarios)
         metrics = {"scenarios": total, "findings": len(findings),
                    "success_rate": round(len(findings) / max(total, 1), 2),
-                   "tokens": tokens, "cost_usd": round(cost_usd, 4),
+                   "tokens": tokens, "cost_usd": round(cost_usd, 4), "cost_known": cost_known,
                    "latency_s": round(time.time() - t0, 3),
                    "budget_reason": budget_reason if incomplete else None,
                    "judges": [getattr(j, "model", None) or getattr(j, "name", "sim") for j in panel]}

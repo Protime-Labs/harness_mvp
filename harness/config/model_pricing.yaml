@@ -1,0 +1,11 @@
+# B6 — model pricing fallback. Owner: FinOps / governance. Consulted ONLY when LiteLLM cannot
+# price a model itself (it already knows Anthropic / OpenAI / Azure / Bedrock rates). Use this for
+# custom gateways or self-hosted models. USD per 1,000 tokens.
+#
+# When a model has neither a LiteLLM price nor an entry here, a turn's cost is `null`; on a
+# cost-governed run (real provider + a finite max_cost_usd) the gate then routes to manual_review —
+# a missing price is never treated as $0.
+schema: harness/model-pricing/v1
+models: {}
+  # "openai/gpt-4o":            { in_per_1k: 0.0025, out_per_1k: 0.01 }
+  # "gateway/att-model-router": { in_per_1k: 0.0,    out_per_1k: 0.0 }

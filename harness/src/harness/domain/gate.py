@@ -22,6 +22,7 @@ def gate_decision(
     findings: List[Finding],
     required_ran: bool,
     evaluator_status: dict | None = None,
+    cost_status: dict | None = None,
 ) -> GateDecision:
     """Aggregate every harness finding into one decision. First matching rule wins.
 
@@ -65,6 +66,11 @@ def gate_decision(
     if any(getattr(f, "blocking", False) for f in findings):
         return out("block", "6.blocking_finding",
                    "Finding at or above the configured fail-severity threshold.")
+    # 6b — cost could not be determined on a cost-governed run: the budget is unassured, so we
+    #      cannot silently approve (ordered AFTER every block rule — a real block always wins).
+    if cost_status and cost_status.get("governed") and cost_status.get("known") is False:
+        return out("manual_review", "6b.cost_unknown",
+                   "Run cost could not be determined on a cost-governed run.")
     # 7 — a high (non-blocking) finding -> warn (advisory)
     if any(getattr(f, "severity", "") == "high" for f in findings):
         return out("warn", "7.high_finding", "High-severity advisory finding.")

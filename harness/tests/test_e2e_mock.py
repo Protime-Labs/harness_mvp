@@ -65,6 +65,21 @@ def test_foundational_pack_unchanged():
     assert len(b["findings"]) == 8
 
 
+def test_quarantine_secret_short_circuits_before_execution():
+    ctx = factory.build_context()
+    asset = {"asset_id": "AGT-SECRET", "config": {"aws_key": "AKIAIOSFODNN7EXAMPLE"}}
+    b = run_assurance(
+        use_case=UC, asset=asset, policy=ctx["policy"], driver=ctx["driver"],
+        adapter=ctx["adapter"], store=ctx["store"], detectors=ctx["detectors"],
+        specs=ctx["specs"], registry_map=ctx["registry_map"], system_prompt=ctx["system_prompt"])
+    assert b["gate"]["decision"] == "block"
+    assert b["gate"]["matched_rule"] == "1.quarantine_block"
+    assert b["harness_results"] == {}                      # ingress refused -> nothing executed
+    assert b["quarantine"]["decision"] == "block" and len(b["quarantine"]["findings"]) == 1
+    assert b["findings"] == []                             # scanner findings live in the quarantine object
+    assert b["replay"]["ok"] is True
+
+
 def test_determinism_same_findings_twice():
     _, a = _run("vulnerable")
     _, b = _run("vulnerable")

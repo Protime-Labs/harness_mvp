@@ -62,10 +62,15 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
         y_quorum = _load_yaml(os.path.join(cfg_dir, "quorum.yaml"))
         y_risk = _load_yaml(os.path.join(cfg_dir, "risk_weights.yaml"))
         y_controls = _load_yaml(os.path.join(cfg_dir, "golden_controls.yaml"))
+        y_pricing = _load_yaml(os.path.join(cfg_dir, "model_pricing.yaml"))
         if y_budgets:
             cfg = _deep_merge(cfg, y_budgets); sources.append("budgets.yaml")
         if y_quorum:
             cfg = _deep_merge(cfg, y_quorum); sources.append("quorum.yaml")
+        if y_pricing:
+            cfg["MODEL_PRICING"] = _deep_merge(cfg.get("MODEL_PRICING", {}),
+                                               y_pricing.get("models", y_pricing) or {})
+            sources.append("model_pricing.yaml")
         if y_risk:
             weights = _deep_merge(weights, y_risk.get("weights", {}))
             cutoffs = _deep_merge(cutoffs, y_risk.get("cutoffs", {}))

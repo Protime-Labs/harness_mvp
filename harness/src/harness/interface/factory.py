@@ -26,7 +26,7 @@ def load_policy(config_dir: Optional[str] = None, overrides: Optional[dict] = No
 def make_target_adapter(cfg: dict):
     if cfg["PROVIDER_MODE"] == "litellm":
         from ..adapters.model.litellm_adapter import LiteLLMAdapter
-        return LiteLLMAdapter(cfg["LITELLM_MODEL"])
+        return LiteLLMAdapter(cfg["LITELLM_MODEL"], pricing=cfg.get("MODEL_PRICING"))
     if cfg["PROVIDER_MODE"] == "http":
         from ..adapters.model.http_adapter import HttpTargetAdapter, parse_headers
         return HttpTargetAdapter(
@@ -53,7 +53,7 @@ def make_judge_adapters(cfg: dict) -> list:
                 f"Judge independence violated (A4/BF-20): judge model must differ from the target "
                 f"(both = {m}). Set a different judge in config/quorum.yaml."
             )
-        panel.append(LiteLLMAdapter(m))
+        panel.append(LiteLLMAdapter(m, pricing=cfg.get("MODEL_PRICING")))
     return panel
 
 

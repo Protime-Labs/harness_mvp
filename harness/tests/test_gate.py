@@ -63,6 +63,26 @@ def test_eligible_evaluator_lets_judge_finding_block():
                          evaluator_status=eligible).decision == "block"
 
 
+def test_cost_unknown_on_governed_run_manual_reviews():
+    unknown = {"governed": True, "known": False}
+    d = gate_decision("allow", [], [], True, cost_status=unknown)
+    assert d.decision == "manual_review" and d.matched_rule == "6b.cost_unknown"
+
+
+def test_cost_unknown_never_overrides_a_real_block():
+    unknown = {"governed": True, "known": False}
+    # a deterministic detector block still BLOCKS despite an undetermined cost
+    assert gate_decision("allow", [], [_f("critical", basis="detector(real-content)")], True,
+                         cost_status=unknown).decision == "block"
+
+
+def test_cost_known_or_ungoverned_has_no_gate_effect():
+    assert gate_decision("allow", [], [], True,
+                         cost_status={"governed": True, "known": True}).decision == "approve"
+    assert gate_decision("allow", [], [], True,
+                         cost_status={"governed": False, "known": False}).decision == "approve"
+
+
 def test_no_llm_tokens_in_gate():
     banned = {"invoke", "completion", "judge", "aggregate"}
     assert banned.isdisjoint(set(gate_decision.__code__.co_names))
