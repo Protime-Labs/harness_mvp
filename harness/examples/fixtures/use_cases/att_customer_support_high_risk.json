@@ -1,0 +1,8 @@
+{
+  "name": "att-customer-support",
+  "data_classes": ["CPNI", "PII"],
+  "exposure": "public",
+  "write_tools": true,
+  "users": ["external"],
+  "criticality": "tier1"
+}

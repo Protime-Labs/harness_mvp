@@ -292,6 +292,85 @@ def cmd_validate_run(args) -> int:
     return 0 if rep["ok"] else 1
 
 
+def cmd_db_init(args) -> int:
+    from ..storage import repository as repo
+    path = repo.init_db(args.db or repo.DEFAULT_DB)
+    print(f"DB READY: {path}  (schema {repo.SCHEMA_VERSION})")
+    return 0
+
+
+def cmd_asset_register(args) -> int:
+    from ..storage import repository as repo
+    asset = _load_json(args.file, None)
+    if asset is None:
+        print("asset JSON file required"); return 2
+    conn = repo.connect(args.db or repo.DEFAULT_DB)
+    r = repo.register_asset(conn, asset, owner=args.owner or "unknown")
+    conn.close()
+    print(f"ASSET: {r['asset_key']}   version: {r['asset_version_id']} "
+          f"({'new' if r['new_version'] else 'existing'}, {r['content_hash'][:19]})")
+    return 0
+
+
+def cmd_usecase_create(args) -> int:
+    from ..storage import repository as repo
+    uc = _load_json(args.file, None)
+    if uc is None:
+        print("use-case JSON file required"); return 2
+    conn = repo.connect(args.db or repo.DEFAULT_DB)
+    r = repo.create_use_case(conn, uc)
+    conn.close()
+    print(f"USE CASE: {r['use_case_id']}")
+    return 0
+
+
+def cmd_evaluate(args) -> int:
+    from ..storage import repository as repo
+    from ..application.bundle import write_run_bundle
+    conn = repo.connect(args.db or repo.DEFAULT_DB)
+    asset = repo.get_asset_version(conn, args.asset_version)
+    use_case = repo.get_use_case(conn, args.usecase)
+    if asset is None or use_case is None:
+        print(f"unknown reference (asset-version found={asset is not None}, usecase found={use_case is not None}); "
+              f"register/create them first"); conn.close(); return 2
+    run_id = repo.create_run(conn, args.asset_version, args.usecase)
+    ctx = factory.build_context(config_dir=args.config, overrides=_overrides(args),
+                                scenario_path=getattr(args, "scenarios", None))
+    bundle = run_assurance(
+        use_case=use_case, asset=asset, policy=ctx["policy"], driver=ctx["driver"],
+        adapter=ctx["adapter"], store=ctx["store"], detectors=ctx["detectors"], specs=ctx["specs"],
+        registry_map=ctx["registry_map"], system_prompt=ctx["system_prompt"], judge_adapter=ctx["judge_adapter"])
+    bundle_dir = args.bundle or os.path.join("runs", run_id)
+    write_run_bundle(bundle, ctx["store"], ctx["policy"], ctx["specs"], bundle_dir)
+    repo.complete_run(conn, run_id, bundle["gate"], bundle_dir=bundle_dir)
+    conn.close()
+    g = bundle["gate"]
+    print(f"RUN {run_id}: gate {g['decision'].upper()}  (rule {g['matched_rule']})")
+    print(f"  bundle : {bundle_dir}   (validate: harness validate-run {bundle_dir})")
+    print(f"  db     : {args.db or repo.DEFAULT_DB}   (show: harness run-show {run_id})")
+    return 0
+
+
+def cmd_run_show(args) -> int:
+    from ..storage import repository as repo
+    conn = repo.connect(args.db or repo.DEFAULT_DB)
+    got = repo.get_run(conn, args.run_id)
+    conn.close()
+    if not got:
+        print(f"no such run: {args.run_id}"); return 2
+    r = got["run"]
+    print(f"RUN {r['run_id']}   status={r['status']}   gate={r['gate_decision']}")
+    print(f"  asset_version : {r['asset_version_id']}")
+    print(f"  use_case      : {r['use_case_id']}")
+    print(f"  bundle_dir    : {r['bundle_dir']}")
+    if got["gate"]:
+        print(f"  gate rule     : {got['gate']['matched_rule']}  ({got['gate']['policy_version']})")
+    print("  audit trail:")
+    for e in got["audit"]:
+        print(f"    {e['ts']}  {e['kind']:22s} {e['detail']}")
+    return 0
+
+
 def cmd_info(args) -> int:
     policy = factory.load_policy(config_dir=args.config)
     print(f"enterprise-harness v{__version__}")
@@ -407,6 +486,44 @@ def build_parser() -> argparse.ArgumentParser:
     vr = sub.add_parser("validate-run", help="replay a persisted run bundle from disk (chain-of-custody)")
     vr.add_argument("path", help="path to a runs/RUN-.../ bundle directory (or its replay_manifest.json)")
     vr.set_defaults(func=cmd_validate_run)
+
+    # --- M4: persisted control-plane lifecycle (SQLite) -------------------------------------
+    def run_opts(sp):  # run-affecting flags for `evaluate` (so _overrides works), minus file paths
+        sp.add_argument("--config", help="config directory (default: <repo>/config)")
+        sp.add_argument("--provider", choices=["mock", "litellm", "http"], help="model provider")
+        sp.add_argument("--profile", choices=["vulnerable", "hardened"], help="mock target profile")
+        sp.add_argument("--pack", choices=["foundational", "advanced", "all"], help="harness pack")
+        sp.add_argument("--presidio", action="store_true", help="use Presidio PII/CPNI detectors")
+        sp.add_argument("--detoxify", action="store_true", help="add the Detoxify toxicity detector")
+        sp.add_argument("--scenarios", help="JSON/JSONL/CSV scenario corpus keyed by harness")
+
+    di = sub.add_parser("db-init", help="create the local SQLite control-plane database")
+    di.add_argument("--db", help=f"database path (default: {'harness_state.db'})")
+    di.set_defaults(func=cmd_db_init)
+
+    ar = sub.add_parser("asset-register", help="register an asset + a content-hashed version")
+    ar.add_argument("file", help="path to an asset JSON")
+    ar.add_argument("--owner", help="asset owner (default: unknown)")
+    ar.add_argument("--db", help="database path")
+    ar.set_defaults(func=cmd_asset_register)
+
+    uc = sub.add_parser("usecase-create", help="create a persisted use case")
+    uc.add_argument("file", help="path to a use-case JSON")
+    uc.add_argument("--db", help="database path")
+    uc.set_defaults(func=cmd_usecase_create)
+
+    ev = sub.add_parser("evaluate", help="evaluate a registered asset-version/use-case; persist the run + bundle")
+    run_opts(ev)
+    ev.add_argument("--asset-version", required=True, dest="asset_version", help="asset version id (from asset-register)")
+    ev.add_argument("--usecase", required=True, help="use case id (from usecase-create)")
+    ev.add_argument("--bundle", metavar="DIR", help="bundle output dir (default: runs/RUN-XXXX)")
+    ev.add_argument("--db", help="database path")
+    ev.set_defaults(func=cmd_evaluate)
+
+    rs = sub.add_parser("run-show", help="show a persisted run (status, gate, audit trail)")
+    rs.add_argument("run_id", help="run id (e.g. RUN-0001)")
+    rs.add_argument("--db", help="database path")
+    rs.set_defaults(func=cmd_run_show)
 
     d = sub.add_parser("dashboard", help="build a self-contained HTML dashboard (open/serve locally)")
     common(d)

@@ -34,7 +34,7 @@ pip install detoxify pyrit                  # toxicity detector / PyRIT driver
 python -m pytest -q
 $env:PYTHONPATH = "src"; python -m harness verify
 ```
-**Expect:** `41 passed`; and the invariant suite ending `OVERALL: ALL PASS` (10 checks:
+**Expect:** `45 passed`; and the invariant suite ending `OVERALL: ALL PASS` (10 checks:
 R9, A1 no-LLM-in-gate, A5 quorum, C3 detector-floor, A8 fail-closed, C4 replay, A7 determinism,
 H5.1 governance, pack selected, block-on-critical).
 
@@ -175,11 +175,32 @@ hash). Regenerate the report from the persisted bundle with
 
 ---
 
+## 11. Persisted control plane — register → evaluate → replay (SQLite / M4)
+
+The full lifecycle as first-class records (assets, versions, runs, gate decisions, audit, outbox):
+
+```powershell
+python -m harness db-init --db harness_state.db
+python -m harness asset-register examples\fixtures\assets\att_support_agent.json --owner demo --db harness_state.db
+python -m harness usecase-create examples\fixtures\use_cases\att_customer_support_high_risk.json --db harness_state.db
+# use the ids printed above:
+python -m harness evaluate --asset-version AST-...-v1 --usecase UC-... --bundle runs\RUN-0001 --db harness_state.db
+python -m harness validate-run runs\RUN-0001
+python -m harness run-show RUN-0001 --db harness_state.db
+```
+**Expect:** `db-init` → `schema harness/db/v1`; `asset-register` → a content-hashed
+`AST-…-v1` (re-registering identical content reuses the version; changed content → a new one);
+`evaluate` → `RUN-0001 gate BLOCK (rule 4.detector_blocking_finding)` + a persisted bundle;
+`validate-run` → **PASS**; `run-show` → `status=completed`, `gate=block`, and an **audit trail**
+(`run.created` → `run.completed`). An `event_outbox` row (`evaluation.completed`) is enqueued.
+
+---
+
 ## Validation checklist
 
 | # | Check | Command | Expected | ✔ |
 |---|---|---|---|---|
-| 1 | Unit tests | `pytest -q` | `41 passed` | ☐ |
+| 1 | Unit tests | `pytest -q` | `45 passed` | ☐ |
 | 1 | Invariants | `harness verify` | `ALL PASS` (10) | ☐ |
 | 2 | Vulnerable | `harness run` | BLOCK · 8 · replay PASS | ☐ |
 | 2 | Hardened | `harness run --profile hardened` | APPROVE · 0 | ☐ |
@@ -194,6 +215,7 @@ hash). Regenerate the report from the persisted bundle with
 | 9 | Real model | `harness run --provider litellm` | APPROVE · basis real | ☐ |
 | 10 | Run bundle | `run --bundle runs\RUN-demo` + `validate-run runs\RUN-demo` | PASS · block · custody OK | ☐ |
 | 10 | Tamper | edit an evidence file + `validate-run` | FAIL · custody mismatch · exit 1 | ☐ |
+| 11 | Persisted flow | `db-init`→`asset-register`→`usecase-create`→`evaluate`→`run-show` | RUN-0001 · completed · block · audit trail | ☐ |
 
 ---
 
