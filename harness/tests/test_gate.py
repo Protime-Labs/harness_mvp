@@ -6,9 +6,11 @@ from harness.domain.risk import contextualize
 from harness.domain.contracts import UseCase
 
 
-def _f(sev):
+def _f(sev, *, blocking=True, basis="llm-judge(real)"):
+    """A finding. `blocking` is what the runner computes from FAIL_ON_SEVERITY; `basis` says whether
+    it is detector-derived (deterministic) or judge-derived."""
     return Finding(id="F", source="harness", severity=sev, category="c", title="t", description="d",
-                   blocking=True, policy_rule="P", evidence_uri="", recommendation="")
+                   blocking=blocking, policy_rule="P", evidence_uri="", recommendation="", basis=basis)
 
 
 def test_gate_vocab_only():
@@ -17,14 +19,48 @@ def test_gate_vocab_only():
 
 
 def test_gate_precedence():
-    assert gate_decision("block", [], [], True).decision == "block"           # quarantine
-    assert gate_decision("allow", [], [], False).decision == "block"          # required not run (fail closed)
+    # 1 quarantine hard block overrides everything (even a clean run)
+    assert gate_decision("block", [], [], True).decision == "block"
+    # 2 required coverage missing -> fail closed
+    assert gate_decision("allow", [], [], False).decision == "block"
+    # 3 a blocking harness reported failed
     assert gate_decision("allow", [{"status": "failed"}], [], True).decision == "block"
-    assert gate_decision("allow", [], [], True, evaluator_status={"gate_eligible": False}).decision == "manual_review"
-    assert gate_decision("allow", [], [_f("critical")], True).decision == "block"
-    assert gate_decision("allow", [], [_f("high")], True).decision == "warn"
-    assert gate_decision("allow", [], [_f("low")], True).decision == "approve"
+    # 8 default -> approve
     assert gate_decision("allow", [], [], True).decision == "approve"
+
+
+def test_gate_honors_fail_on_severity():
+    # FAIL_ON_SEVERITY=high => a high finding is blocking => BLOCK (previously only warned).
+    assert gate_decision("allow", [], [_f("high", blocking=True)], True).decision == "block"
+    # FAIL_ON_SEVERITY=critical => a high finding is non-blocking => WARN.
+    assert gate_decision("allow", [], [_f("high", blocking=False)], True).decision == "warn"
+    # A non-blocking low finding => APPROVE.
+    assert gate_decision("allow", [], [_f("low", blocking=False)], True).decision == "approve"
+    # Any blocking finding blocks regardless of severity label.
+    assert gate_decision("allow", [], [_f("critical", blocking=True)], True).decision == "block"
+
+
+def test_detector_critical_blocks_even_when_evaluator_ineligible():
+    # C3: a deterministic detector-based blocking finding blocks even when the judge is uncalibrated.
+    ineligible = {"gate_eligible": False}
+    d = gate_decision("allow", [], [_f("critical", basis="detector(real-content)")], True,
+                      evaluator_status=ineligible)
+    assert d.decision == "block" and d.matched_rule == "4.detector_blocking_finding"
+
+
+def test_judge_only_finding_manual_reviews_when_evaluator_ineligible():
+    ineligible = {"gate_eligible": False}
+    # A judge-derived blocking finding + uncalibrated judge => human review, not a silent block.
+    assert gate_decision("allow", [], [_f("critical", basis="llm-judge(real)")], True,
+                         evaluator_status=ineligible).decision == "manual_review"
+    # No findings + uncalibrated judge => manual_review (cannot trust an 'all clear').
+    assert gate_decision("allow", [], [], True, evaluator_status=ineligible).decision == "manual_review"
+
+
+def test_eligible_evaluator_lets_judge_finding_block():
+    eligible = {"gate_eligible": True}
+    assert gate_decision("allow", [], [_f("critical", basis="llm-judge(real)")], True,
+                         evaluator_status=eligible).decision == "block"
 
 
 def test_no_llm_tokens_in_gate():

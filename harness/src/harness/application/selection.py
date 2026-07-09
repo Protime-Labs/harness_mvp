@@ -21,3 +21,16 @@ def select(required: List[str], registry: Dict[str, dict]) -> Tuple[List[dict], 
         else:
             plan.append({"harness": h, "governance": d.get("governance", False)})
     return plan, skipped
+
+
+def coverage_complete(results: Dict[str, dict], attack_ids: List[str], skipped: List[dict]) -> bool:
+    """Required-coverage check that feeds the gate's `required_ran` (A8 fail-closed).
+
+    Coverage is complete only when NOTHING required was skipped (an unimplemented/unregistered
+    required harness is a real coverage gap, never a silent pass) AND every planned attack harness
+    actually completed. Any gap -> False -> the gate blocks (rule 2). This is what makes a skipped
+    required harness gate-visible instead of invisibly absent.
+    """
+    if skipped:
+        return False
+    return all(results.get(h, {}).get("status") == "completed" for h in attack_ids)

@@ -34,7 +34,7 @@ pip install detoxify pyrit                  # toxicity detector / PyRIT driver
 python -m pytest -q
 $env:PYTHONPATH = "src"; python -m harness verify
 ```
-**Expect:** `14 passed`; and the invariant suite ending `OVERALL: ALL PASS` (10 checks:
+**Expect:** `24 passed`; and the invariant suite ending `OVERALL: ALL PASS` (10 checks:
 R9, A1 no-LLM-in-gate, A5 quorum, C3 detector-floor, A8 fail-closed, C4 replay, A7 determinism,
 H5.1 governance, pack selected, block-on-critical).
 
@@ -47,8 +47,8 @@ python -m harness run                       # vulnerable mock
 python -m harness run --profile hardened    # hardened mock
 ```
 **Expect:**
-- vulnerable → **Gate: BLOCK**, rule `4.critical_finding`, **8 findings**, **Replay (Mode-A): PASS**
-- hardened → **Gate: APPROVE**, rule `9.default`, **0 findings**
+- vulnerable → **Gate: BLOCK**, rule `4.detector_blocking_finding`, **8 findings**, **Replay (Mode-A): PASS**
+- hardened → **Gate: APPROVE**, rule `8.default`, **0 findings**
 
 This is the core thesis: the same harness **discriminates** — a compliant target blocks, a safe one approves.
 
@@ -156,7 +156,7 @@ the factory refuses if equal). This is the recorded **Gate G1** result (`harness
 
 | # | Check | Command | Expected | ✔ |
 |---|---|---|---|---|
-| 1 | Unit tests | `pytest -q` | `14 passed` | ☐ |
+| 1 | Unit tests | `pytest -q` | `24 passed` | ☐ |
 | 1 | Invariants | `harness verify` | `ALL PASS` (10) | ☐ |
 | 2 | Vulnerable | `harness run` | BLOCK · 8 · replay PASS | ☐ |
 | 2 | Hardened | `harness run --profile hardened` | APPROVE · 0 | ☐ |

@@ -20,9 +20,10 @@ from .judge_calibration import calibrate_judge
 from .contextualize import contextualize
 from .governance import run_governance_finding_lifecycle
 from .readiness import assess_enterprise_readiness
+from .quarantine import screen_asset
 from .remediation import remediate
 from .replay import replay_mode_a
-from .selection import select
+from .selection import coverage_complete, select
 
 
 def run_assurance(
@@ -41,9 +42,15 @@ def run_assurance(
 ) -> Dict[str, Any]:
     cfg = policy["config"]
 
+    # W? quarantine (security front door) — a real gate input, not a hard-coded string
+    quarantine = screen_asset(asset, cfg)
+
     # W1 contextualize -> W2 select
     ctx = contextualize(use_case, policy)
     plan, skipped = select(ctx["required_harnesses"], registry_map)
+    # The selected plan is authoritative: run the plan's attack harnesses (governance harnesses are
+    # verified by H5.1, not executed as attacks), NOT cfg["PHASE1_ATTACK"] directly.
+    attack_ids = [p["harness"] for p in plan if not p.get("governance")]
 
     # W3 run each attack harness (driver honors the run contract; judge quorum inside)
     results: Dict[str, dict] = {}
@@ -51,7 +58,7 @@ def run_assurance(
     all_verdicts: List[dict] = []
     all_manifest: List[dict] = []
     all_findings: List[Finding] = []
-    for hid in cfg["PHASE1_ATTACK"]:
+    for hid in attack_ids:
         r, t, v, m, f = driver.run(specs[hid], adapter, store, cfg)
         results[hid] = r
         all_turns += t
@@ -64,20 +71,22 @@ def run_assurance(
 
     # C1 calibration per harness (scenario-based; meaningful vs a KNOWN-vulnerable target like the mock)
     cal = {hid: calibrate(specs[hid], adapter, system_prompt, cfg, detectors, judge_adapter=judge_adapter)
-           for hid in cfg["PHASE1_ATTACK"]}
+           for hid in attack_ids}
     # DR-11 verdict-level judge calibration (target-independent; the real-path gate-eligibility basis)
     judge_cal = calibrate_judge(judge_adapter or adapter, cfg, detectors)
 
-    # W8 gate — the single deterministic decision (control plane, no LLM)
-    required_ran = all(results[h]["status"] == "completed" for h in cfg["PHASE1_ATTACK"])
-    gate = gate_decision("allow", list(results.values()), all_findings, required_ran,
+    # W8 gate — the single deterministic decision (control plane, no LLM). Coverage fails closed when
+    # a required harness was skipped (unimplemented/unregistered) or did not complete (A8).
+    required_ran = coverage_complete(results, attack_ids, skipped)
+    gate = gate_decision(quarantine["decision"], list(results.values()), all_findings, required_ran,
                          evaluator_status=judge_cal)
 
     # Mode-A replay (C4) — reproduce findings + gate from evidence alone
-    harness_detectors = {hid: specs[hid].detectors for hid in cfg["PHASE1_ATTACK"]}
+    harness_detectors = {hid: specs[hid].detectors for hid in attack_ids}
     orig = sorted((f.id, f.severity, f.category) for f in all_findings)
     replay_findings, replay_gate = replay_mode_a(
-        all_manifest, all_verdicts, store, detectors, harness_detectors, evaluator_status=judge_cal)
+        all_manifest, all_verdicts, store, detectors, harness_detectors, evaluator_status=judge_cal,
+        fail_on_severity=cfg["FAIL_ON_SEVERITY"])
     replay_ok = (orig == replay_findings) and (gate.decision == replay_gate.decision)
 
     # W9 remediation (advisory)
@@ -117,6 +126,7 @@ def run_assurance(
         "context": ctx,
         "plan": plan,
         "skipped": skipped,
+        "quarantine": quarantine,
         "harness_results": results,
         "governance": gov,
         "gate": asdict(gate),
