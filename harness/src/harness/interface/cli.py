@@ -21,7 +21,7 @@ from .. import __version__
 from ..domain.invariants import INVARIANTS
 from ..application.acceptance import run_invariant_suite
 from ..application.orchestrator import run_assurance
-from ..application.readiness import assess_enterprise_readiness
+from ..application.readiness import assess_enterprise_readiness, assess_mvp_readiness
 from ..registry import load_harnesses
 from . import factory
 from .report import render_report
@@ -422,6 +422,9 @@ def cmd_doctor(args) -> int:
     print(f"scenario source  : {ctx.get('scenario_path') or 'built-in/config suite'}")
     print(f"scenario count   : {_scenario_count(ctx)}")
     print(f"evidence store   : {type(ctx['store']).__name__}")
+    mvp = assess_mvp_readiness(
+        ctx["policy"], store=ctx["store"], detectors=ctx["detectors"],
+        driver_name=getattr(ctx["driver"], "name", None), specs=ctx["specs"])
     readiness = assess_enterprise_readiness(
         ctx["policy"],
         scenario_path=ctx.get("scenario_path"),
@@ -430,9 +433,13 @@ def cmd_doctor(args) -> int:
         driver_name=getattr(ctx["driver"], "name", None),
         specs=ctx["specs"],
     )
+    print(f"mvp ready        : {'yes' if mvp['ready'] else 'no'}   (local substitutes: quarantine scanner, "
+          f"replayable evidence, deterministic gate, sqlite persistence)")
+    for item in mvp["missing"]:
+        print(f"  mvp missing    : {item}")
     print(f"enterprise ready : {'yes' if not readiness['missing'] else 'no'}")
     for item in readiness["missing"]:
-        print(f"  missing        : {item}")
+        print(f"  ent. missing   : {item}")
     return 0 if not readiness["hard_blockers"] else 1
 
 

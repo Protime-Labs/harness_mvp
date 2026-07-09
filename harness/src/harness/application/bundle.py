@@ -20,7 +20,6 @@ import os
 import shutil
 from typing import Any, Dict, List
 
-from ..adapters.detectors import build_detectors
 from ..domain.contracts import sha256_hex
 from .replay import replay_mode_a
 
@@ -125,6 +124,8 @@ def validate_run_bundle(path: str) -> dict:
     """Replay the gate from a persisted bundle (no live objects, no model calls). `path` is the
     bundle directory or its replay_manifest.json. Returns {ok, expected_gate, replayed_gate, ...};
     a tampered evidence file trips the chain-of-custody hash check and yields ok=False."""
+    from ..adapters.detectors import build_detectors  # lazy: keep the module-level layer graph clean
+
     bundle_dir = os.path.dirname(path) if path.endswith(".json") else path
     with open(os.path.join(bundle_dir, "replay_manifest.json"), encoding="utf-8") as f:
         rm = json.load(f)

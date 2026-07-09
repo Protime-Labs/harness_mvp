@@ -1,11 +1,35 @@
-# B6 — Golden Controls mapping (BF-17, PLACEHOLDER). Owner: AT&T governance.
-# These are DOMAIN TAGS standing in for the real AT&T Golden Controls catalogue. When the
-# catalogue is supplied, replace each domain with its real control IDs + text and map them to
-# finding categories. This is a dependency ticket, not a decided value (DR-07).
+# B6 — Golden Controls mapping (BF-17). Owner: AT&T governance.
+# This is a STRUCTURED UNRESOLVED DEPENDENCY RECORD, not a set of real control IDs. Until the AT&T
+# Golden Controls catalogue is supplied, findings map to the fallback OWASP/NIST tags below and
+# enterprise control attestation is explicitly NOT complete (readiness + reports say so).
+schema: harness/golden-controls/v1
+status: unresolved
+external_dependency: AT&T Golden Controls catalogue
+note: >
+  No real control IDs are asserted here. Replace each domain with its true control_id + text when
+  the catalogue is provided; until then the fallback standards carry the mapping.
 domains:
-  tool_egress:     { control_id: "GC-TBD-EGRESS",  text: "PLACEHOLDER — tool/network egress control" }
-  change_mgmt:     { control_id: "GC-TBD-CHANGE",  text: "PLACEHOLDER — change management / write-action control" }
-  model_risk:      { control_id: "GC-TBD-MODEL",   text: "PLACEHOLDER — model risk management control" }
-  data_policy:     { control_id: "GC-TBD-DATA",    text: "PLACEHOLDER — data handling / classification control" }
-  acceptable_use:  { control_id: "GC-TBD-USE",     text: "PLACEHOLDER — acceptable use / harm control" }
-  cpni_handling:   { control_id: "GC-TBD-CPNI",    text: "PLACEHOLDER — CPNI handling control (47 U.S.C. 222)" }
+  tool_egress:
+    status: unresolved
+    fallback_standards: { owasp_llm: [LLM06], nist_ai_rmf: [MANAGE] }
+    blocks_enterprise_attestation: true
+  change_mgmt:
+    status: unresolved
+    fallback_standards: { owasp_llm: [LLM08], nist_ai_rmf: [GOVERN] }
+    blocks_enterprise_attestation: true
+  model_risk:
+    status: unresolved
+    fallback_standards: { nist_ai_rmf: [MEASURE], iso_42001: [clause-8] }
+    blocks_enterprise_attestation: true
+  data_policy:
+    status: unresolved
+    fallback_standards: { owasp_llm: [LLM02], nist_ai_rmf: [MAP] }
+    blocks_enterprise_attestation: true
+  acceptable_use:
+    status: unresolved
+    fallback_standards: { owasp_llm: [LLM01], nist_ai_rmf: [MANAGE] }
+    blocks_enterprise_attestation: true
+  cpni_handling:
+    status: unresolved
+    fallback_standards: { owasp_llm: [LLM02], nist_ai_rmf: [MEASURE] }
+    blocks_enterprise_attestation: true

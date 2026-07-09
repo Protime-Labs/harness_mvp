@@ -19,7 +19,7 @@ from .calibration import calibrate
 from .judge_calibration import calibrate_judge
 from .contextualize import contextualize
 from .governance import run_governance_finding_lifecycle
-from .readiness import assess_enterprise_readiness
+from .readiness import assess_enterprise_readiness, assess_mvp_readiness
 from .quarantine import screen_asset
 from .remediation import remediate
 from .replay import replay_mode_a
@@ -94,11 +94,14 @@ def run_assurance(
         readiness = assess_enterprise_readiness(
             policy, store=store, detectors=detectors,
             driver_name=getattr(driver, "name", None), specs=specs)
+        mvp_readiness = assess_mvp_readiness(
+            policy, store=store, detectors=detectors,
+            driver_name=getattr(driver, "name", None), specs=specs)
         return {
             "asset": asset, "use_case": use_case, "run_config": _build_run_config(cfg),
             "context": ctx, "plan": plan, "skipped": skipped, "quarantine": quarantine,
             "harness_results": {}, "governance": gov, "gate": asdict(gate),
-            "enterprise_readiness": readiness, "calibration": {},
+            "enterprise_readiness": readiness, "mvp_readiness": mvp_readiness, "calibration": {},
             "judge_calibration": {"gate_eligible": None, "n": 0,
                                   "basis": "not run (ingress quarantined before evaluation)"},
             "replay": {"ok": True, "findings": [], "gate": asdict(gate)},
@@ -162,6 +165,9 @@ def run_assurance(
         driver_name=getattr(driver, "name", None),
         specs=specs,
     )
+    mvp_readiness = assess_mvp_readiness(
+        policy, store=store, detectors=detectors,
+        driver_name=getattr(driver, "name", None), specs=specs)
 
     return {
         "asset": asset,
@@ -175,6 +181,7 @@ def run_assurance(
         "governance": gov,
         "gate": asdict(gate),
         "enterprise_readiness": readiness,
+        "mvp_readiness": mvp_readiness,
         "calibration": cal,
         "judge_calibration": judge_cal,
         "replay": {"ok": replay_ok, "findings": replay_findings, "gate": asdict(replay_gate)},

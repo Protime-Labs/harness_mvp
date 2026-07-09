@@ -34,7 +34,7 @@ pip install detoxify pyrit                  # toxicity detector / PyRIT driver
 python -m pytest -q
 $env:PYTHONPATH = "src"; python -m harness verify
 ```
-**Expect:** `45 passed`; and the invariant suite ending `OVERALL: ALL PASS` (10 checks:
+**Expect:** `50 passed`; and the invariant suite ending `OVERALL: ALL PASS` (10 checks:
 R9, A1 no-LLM-in-gate, A5 quorum, C3 detector-floor, A8 fail-closed, C4 replay, A7 determinism,
 H5.1 governance, pack selected, block-on-critical).
 
@@ -200,7 +200,7 @@ python -m harness run-show RUN-0001 --db harness_state.db
 
 | # | Check | Command | Expected | ✔ |
 |---|---|---|---|---|
-| 1 | Unit tests | `pytest -q` | `45 passed` | ☐ |
+| 1 | Unit tests | `pytest -q` | `50 passed` | ☐ |
 | 1 | Invariants | `harness verify` | `ALL PASS` (10) | ☐ |
 | 2 | Vulnerable | `harness run` | BLOCK · 8 · replay PASS | ☐ |
 | 2 | Hardened | `harness run --profile hardened` | APPROVE · 0 | ☐ |

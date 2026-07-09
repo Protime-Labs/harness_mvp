@@ -16,14 +16,53 @@ def _golden_controls_loaded(policy: dict) -> bool:
 
 
 def _golden_controls_ready(policy: dict) -> bool:
+    gc = policy.get("golden_controls") or {}
     if not _golden_controls_loaded(policy):
         return False
-    marker_text = str(policy.get("golden_controls", "")).upper()
-    return "PLACEHOLDER" not in marker_text and "TBD" not in marker_text
+    if str(gc.get("status", "")).lower() == "unresolved":
+        return False
+    marker_text = str(gc).upper()
+    return not any(m in marker_text for m in ("PLACEHOLDER", "TBD", "UNRESOLVED"))
 
 
 def _store_name(store: Any) -> str:
     return type(store).__name__ if store is not None else ""
+
+
+def assess_mvp_readiness(
+    policy: dict,
+    *,
+    store: Any = None,
+    detectors: Dict[str, Callable] | None = None,
+    driver_name: str | None = None,
+    specs: Dict[str, Any] | None = None,
+) -> dict:
+    """LOCAL readiness — the MVP substitutes that make a run real WITHOUT enterprise services.
+
+    This is deliberately separate from `assess_enterprise_readiness`: a fully-local run (mock target,
+    local secrets scanner, file evidence + replay, SQLite persistence, deterministic gate) is
+    MVP-ready even though it is not enterprise-ready. Reporting one verdict would under-credit a
+    legitimately complete local evaluation (§4.6)."""
+    dets = sorted((detectors or {}).keys())
+    missing: list[str] = []
+    if not dets:
+        missing.append("detector registry (deterministic content floor)")
+    if store is None:
+        missing.append("evidence store")
+    if not driver_name:
+        missing.append("harness driver")
+    if not specs:
+        missing.append("harness specs")
+    enabled = {
+        "quarantine_scanner": "local-regex-secrets",         # M2
+        "evidence_store": _store_name(store) or "none",       # M0
+        "replayable_bundle": True,                            # M3
+        "deterministic_gate": True,                           # A1
+        "persistence": "sqlite (local)",                      # M4
+        "detectors": dets, "driver": driver_name or "unknown",
+        "harness_count": len(specs or {}),
+    }
+    return {"ready": not missing, "missing": missing, "enabled": enabled}
 
 
 def assess_enterprise_readiness(
@@ -58,7 +97,14 @@ def assess_enterprise_readiness(
     if not _golden_controls_loaded(policy):
         missing.append("Golden Controls catalogue")
     elif not _golden_controls_ready(policy):
-        missing.append("production Golden Controls catalogue (current file is placeholder/TBD)")
+        missing.append("production Golden Controls catalogue (current file is an unresolved dependency record)")
+    # HTTP target must reference secrets by env var, never carry them inline (BF/§4.8)
+    headers = cfg.get("HTTP_HEADERS")
+    if provider == "http" and headers:
+        from ..domain.secrets import scan_secrets
+        if scan_secrets(str(headers)):
+            missing.append("HTTP target headers contain inline secrets — use env-var references")
+            hard.append("inline secret in HTTP target headers")
     if not cfg.get("MODEL_ROUTER_URL"):
         missing.append("model gateway/router policy enforcement")
     if not cfg.get("QUARANTINE_SCANNER_URL"):
