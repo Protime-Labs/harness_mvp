@@ -1,0 +1,350 @@
+<mxfile host="app.diagrams.net" agent="harness-arch-gen" version="24.0.0">
+  <diagram id="hex" name="1 · Hexagonal Architecture">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="hex-1" value="Enterprise AI Assurance Harness — Clean / Hexagonal Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=22;fontColor=#212121;" vertex="1" parent="1"><mxGeometry x="560" y="20" width="560" height="40" as="geometry"/></mxCell>
+        <mxCell id="hex-2" value="Dependency rule points INWARD: interface → application → ports → domain (pure). Only adapters/interface touch the outside world." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=13;fontColor=#616161;" vertex="1" parent="1"><mxGeometry x="520" y="62" width="640" height="26" as="geometry"/></mxCell>
+        <mxCell id="hex-3" value="DOMAIN  (pure · stdlib only)
+
+contracts · gate · aggregate · risk
+patterns · secrets · invariants
+
+CONTROL PLANE — deterministic, decides" style="swimlane;whiteSpace=wrap;html=1;fillColor=#C5CAE9;strokeColor=#3F51B5;fontColor=#1A237E;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="690" y="470" width="300" height="150" as="geometry"/></mxCell>
+        <mxCell id="hex-4" value="PORTS  (seams · Protocols)
+ModelPort · EvidencePort · DetectorPort · HarnessDriver" style="swimlane;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00897B;fontColor=#004D40;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="560" y="300" width="560" height="90" as="geometry"/></mxCell>
+        <mxCell id="hex-5" value="APPLICATION  (orchestration · depends on domain + ports only)
+orchestrator · runner · judge · calibration · selection · quarantine · replay · bundle · endpoints · readiness · probe · acceptance" style="swimlane;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1976D2;fontColor=#0D47A1;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="430" y="700" width="820" height="120" as="geometry"/></mxCell>
+        <mxCell id="hex-6" value="ADAPTERS  (concrete · the ONLY layer that imports SDKs)
+
+model: mock · litellm · http
+detectors: regex · presidio · detoxify
+drivers: overlay · inspect · pyrit · nemo · garak
+evidence: file store
+config: defaults · loader" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#F57C00;fontColor=#E65100;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="120" y="300" width="360" height="360" as="geometry"/></mxCell>
+        <mxCell id="hex-7" value="INTERFACE  (composition root · wires concretes)
+
+factory (builds + injects)
+cli · dashboard · probe_server
+report · capabilities · demo_target" style="swimlane;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;fontColor=#1B5E20;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="1240" y="300" width="340" height="360" as="geometry"/></mxCell>
+        <mxCell id="hex-8" value="STORAGE  (M4 · SQLite)
+repository — assets · versions · runs
+gate_decisions · audit · outbox" style="swimlane;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#8E24AA;fontColor=#4A148C;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="1240" y="700" width="340" height="120" as="geometry"/></mxCell>
+        <mxCell id="hex-9" value="wires + injects" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;endArrow=open;" edge="1" parent="1" source="hex-7" target="hex-5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="hex-10" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;endArrow=block;" edge="1" parent="1" source="hex-6" target="hex-4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="hex-11" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;endArrow=open;" edge="1" parent="1" source="hex-5" target="hex-4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="hex-12" value="speaks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;endArrow=open;" edge="1" parent="1" source="hex-4" target="hex-3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="hex-13" value="uses (pure)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;endArrow=open;dashed=1;" edge="1" parent="1" source="hex-5" target="hex-3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="hex-14" value="persists via" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;endArrow=open;" edge="1" parent="1" source="hex-7" target="hex-8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="hex-15" value="records run" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;endArrow=open;dashed=1;" edge="1" parent="1" source="hex-5" target="hex-8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="hex-16" value="KEYSTONE INVARIANT (A1)
+Agents generate &amp; judge (data plane).
+Deterministic policy decides (control plane).
+No LLM in the gate / risk path." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;" vertex="1" parent="1"><mxGeometry x="120" y="700" width="300" height="120" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pipe" name="2 · Assurance Pipeline (W0–W9)">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="pipe-1" value="Assurance Run Pipeline — W0 orchestration" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=22;fontColor=#212121;" vertex="1" parent="1"><mxGeometry x="560" y="20" width="560" height="40" as="geometry"/></mxCell>
+        <mxCell id="pipe-2" value="One provider-independent run. The GATE is the single deterministic decision point." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=13;fontColor=#616161;" vertex="1" parent="1"><mxGeometry x="500" y="62" width="700" height="26" as="geometry"/></mxCell>
+        <mxCell id="pipe-3" value="INPUT
+asset + use case" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="1"><mxGeometry x="60" y="140" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-4" value="W? QUARANTINE
+screen_asset → secrets
+→ QuarantineDecision" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="300" y="140" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-5" value="W1 CONTEXTUALIZE
+risk score → tier" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="540" y="140" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-6" value="W2 SELECT
+plan + skip rationale
+coverage (fail-closed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="780" y="140" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-7" value="W3 RUN HARNESSES
+for each in plan →" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1020" y="140" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-3" target="pipe-4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-9" value="allow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-4" target="pipe-5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-5" target="pipe-6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-6" target="pipe-7"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-12" value="target.invoke()
+(ModelPort)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="980" y="300" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="pipe-13" value="capture evidence
+(input+output hash)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="1"><mxGeometry x="980" y="370" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="pipe-14" value="detectors
+(deterministic floor)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1180" y="300" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="pipe-15" value="judge quorum
+(independent, A4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1180" y="370" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="pipe-16" value="aggregate (C3)
+→ Finding[]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="1"><mxGeometry x="1080" y="450" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="pipe-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-7" target="pipe-12"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-12" target="pipe-13"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-19" value="response" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-12" target="pipe-14"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-20" value="response" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-12" target="pipe-15"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-21" value="hit floors" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-14" target="pipe-16"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-22" value="quorum vote" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-15" target="pipe-16"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-23" value="H5.1 GOVERNANCE
+finding-lifecycle self-check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="60" y="560" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-24" value="W8 GATE  (A1)
+deterministic decision
+approve·warn·block·manual_review" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;fontColor=#B71C1C;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="300" y="560" width="200" height="80" as="geometry"/></mxCell>
+        <mxCell id="pipe-25" value="C1 CALIBRATION
+judge gate-eligibility" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="540" y="560" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-26" value="C4 REPLAY (Mode-A)
+reproduce from evidence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="1"><mxGeometry x="780" y="560" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-27" value="W9 REMEDIATION
+advisory records" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1020" y="560" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-16" target="pipe-23"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-29" value="findings" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-23" target="pipe-24"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-30" value="quarantine decision" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;dashed=1;" edge="1" parent="1" source="pipe-4" target="pipe-24"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-31" value="eligibility" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;dashed=1;" edge="1" parent="1" source="pipe-25" target="pipe-24"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-24" target="pipe-26"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-26" target="pipe-27"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-34" value="M3 BUNDLE
+runs/RUN-…/ manifests + evidence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="1"><mxGeometry x="540" y="720" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-35" value="M4 PERSIST
+SQLite run + audit + outbox" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="1"><mxGeometry x="780" y="720" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-36" value="validate-run
+replay from disk · tamper fails" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="1"><mxGeometry x="1020" y="720" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="pipe-37" value="decision + findings" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-24" target="pipe-34"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="pipe-34" target="pipe-35"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-39" value="any time later" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;dashed=1;" edge="1" parent="1" source="pipe-34" target="pipe-36"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="pipe-40" value="SHORT-CIRCUIT: a quarantine BLOCK skips all harness execution — no target call, no billing." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;" vertex="1" parent="1"><mxGeometry x="60" y="720" width="220" height="90" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="plane" name="3 · Control Plane vs Data Plane (A1)">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="plane-1" value="Control Plane decides · Data Plane executes" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=22;fontColor=#212121;" vertex="1" parent="1"><mxGeometry x="560" y="20" width="560" height="40" as="geometry"/></mxCell>
+        <mxCell id="plane-2" value="A1 keystone: no model call is reachable from the gate/risk path — proven by bytecode inspection + an import-boundary lint." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=13;fontColor=#616161;" vertex="1" parent="1"><mxGeometry x="430" y="62" width="840" height="26" as="geometry"/></mxCell>
+        <mxCell id="plane-3" value="CONTROL PLANE  ·  deterministic  ·  domain (pure)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontColor=#1B5E20;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="120" y="130" width="620" height="640" as="geometry"/></mxCell>
+        <mxCell id="plane-4" value="gate_decision
+the ONE decision; fixed vocabulary; first-match precedence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="plane-3"><mxGeometry x="20" y="50" width="580" height="56" as="geometry"/></mxCell>
+        <mxCell id="plane-5" value="risk / contextualize
+weighted score → tier → required harness pack" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="plane-3"><mxGeometry x="20" y="122" width="580" height="56" as="geometry"/></mxCell>
+        <mxCell id="plane-6" value="selection / coverage_complete
+plan + skips; missing required coverage fails closed (A8)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="plane-3"><mxGeometry x="20" y="194" width="580" height="56" as="geometry"/></mxCell>
+        <mxCell id="plane-7" value="aggregate (C3 floor)
+detector hit overrides the judge quorum" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="plane-3"><mxGeometry x="20" y="266" width="580" height="56" as="geometry"/></mxCell>
+        <mxCell id="plane-8" value="quarantine decision
+ingress secrets scan → allow/block" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="plane-3"><mxGeometry x="20" y="338" width="580" height="56" as="geometry"/></mxCell>
+        <mxCell id="plane-9" value="judge calibration eligibility
+below threshold → judge findings route to manual_review" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="plane-3"><mxGeometry x="20" y="410" width="580" height="56" as="geometry"/></mxCell>
+        <mxCell id="plane-10" value="Mode-A replay gate
+reproduce the decision from evidence alone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="plane-3"><mxGeometry x="20" y="482" width="580" height="56" as="geometry"/></mxCell>
+        <mxCell id="plane-11" value="invariants registry
+A1 · C3 · A8 · A4 · C4 · R9 — the constitution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="plane-3"><mxGeometry x="20" y="554" width="580" height="56" as="geometry"/></mxCell>
+        <mxCell id="plane-12" value="DATA PLANE  ·  agentic / stochastic  ·  adapters" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#EF6C00;fontColor=#E65100;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="940" y="130" width="620" height="640" as="geometry"/></mxCell>
+        <mxCell id="plane-13" value="target model (ModelPort)
+mock · LiteLLM · HTTP endpoint — the asset under test" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;fontColor=#E65100;" vertex="1" parent="plane-12"><mxGeometry x="20" y="50" width="580" height="74" as="geometry"/></mxCell>
+        <mxCell id="plane-14" value="judge quorum
+N independent judges per candidate; model ≠ target (A4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;fontColor=#E65100;" vertex="1" parent="plane-12"><mxGeometry x="20" y="146" width="580" height="74" as="geometry"/></mxCell>
+        <mxCell id="plane-15" value="deterministic detectors
+regex/Presidio/Detoxify — real-content evidence floor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;fontColor=#E65100;" vertex="1" parent="plane-12"><mxGeometry x="20" y="242" width="580" height="74" as="geometry"/></mxCell>
+        <mxCell id="plane-16" value="harness drivers (B3)
+builtin · overlay · Inspect · PyRIT — how attacks are run" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;fontColor=#E65100;" vertex="1" parent="plane-12"><mxGeometry x="20" y="338" width="580" height="74" as="geometry"/></mxCell>
+        <mxCell id="plane-17" value="evidence store
+every turn hashed + written (chain of custody)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;fontColor=#E65100;" vertex="1" parent="plane-12"><mxGeometry x="20" y="434" width="580" height="74" as="geometry"/></mxCell>
+        <mxCell id="plane-18" value="scenario corpus
+attacks with ground-truth labels (built-in or external)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#EF6C00;fontColor=#E65100;" vertex="1" parent="plane-12"><mxGeometry x="20" y="530" width="580" height="74" as="geometry"/></mxCell>
+        <mxCell id="plane-19" value="BETWEEN THEM: evidence (hashed) flows data→control; policy (config) flows into both. The judge is isolated + independent; its verdicts are EVIDENCE the control plane weighs — it never decides." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;" vertex="1" parent="1"><mxGeometry x="620" y="800" width="460" height="90" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seams" name="4 · Seams &amp; Pluggable Implementations">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="seams-1" value="Base-Layer Seams (B0–B6) — ships local, plugs into enterprise" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=22;fontColor=#212121;" vertex="1" parent="1"><mxGeometry x="560" y="20" width="560" height="40" as="geometry"/></mxCell>
+        <mxCell id="seams-2" value="Seam (port)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=14;fontColor=#212121;align=center;fillColor=#ECEFF1;strokeColor=#607D8B;" vertex="1" parent="1"><mxGeometry x="80" y="120" width="420" height="40" as="geometry"/></mxCell>
+        <mxCell id="seams-3" value="Ships today" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=14;fontColor=#212121;align=center;fillColor=#ECEFF1;strokeColor=#607D8B;" vertex="1" parent="1"><mxGeometry x="500" y="120" width="320" height="40" as="geometry"/></mxCell>
+        <mxCell id="seams-4" value="Plug in later" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=14;fontColor=#212121;align=center;fillColor=#ECEFF1;strokeColor=#607D8B;" vertex="1" parent="1"><mxGeometry x="820" y="120" width="460" height="40" as="geometry"/></mxCell>
+        <mxCell id="seams-5" value="Invariant" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=14;fontColor=#212121;align=center;fillColor=#ECEFF1;strokeColor=#607D8B;" vertex="1" parent="1"><mxGeometry x="1280" y="120" width="320" height="40" as="geometry"/></mxCell>
+        <mxCell id="seams-6" value="B2 ModelPort — model I/O" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="80" y="166" width="420" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-7" value="MockAdapter (offline)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="500" y="166" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-8" value="LiteLLM · HTTP endpoint · Janus · Model Router" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="820" y="166" width="460" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-9" value="R2/A2 provider-independent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;align=center;" vertex="1" parent="1"><mxGeometry x="1280" y="166" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-10" value="B3 HarnessDriver — run contract" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="80" y="240" width="420" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-11" value="BuiltinDriver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="500" y="240" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-12" value="Overlay · Inspect AI · PyRIT · Garak · NeMo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="820" y="240" width="460" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-13" value="A7 determinism" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;align=center;" vertex="1" parent="1"><mxGeometry x="1280" y="240" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-14" value="Detector seam — content floor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="80" y="314" width="420" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-15" value="regex SSN/acct/tool/CPNI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="500" y="314" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-16" value="Presidio (+CPNI) · Detoxify · scanners" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="820" y="314" width="460" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-17" value="C3 detectors floor judge" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;align=center;" vertex="1" parent="1"><mxGeometry x="1280" y="314" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-18" value="B4 EvidencePort — chain of custody" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="80" y="388" width="420" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-19" value="FileEvidenceStore (hashed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="500" y="388" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-20" value="S3/WORM · append-only DB · SIEM export" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="820" y="388" width="460" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-21" value="A3/R6 evidence" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;align=center;" vertex="1" parent="1"><mxGeometry x="1280" y="388" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-22" value="Judge (application)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="80" y="462" width="420" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-23" value="offline sim / LiteLLM judge" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="500" y="462" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-24" value="diverse-model quorum panel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="820" y="462" width="460" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-25" value="A4 isolated + independent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;align=center;" vertex="1" parent="1"><mxGeometry x="1280" y="462" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-26" value="B6 Config — operator surface" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="80" y="536" width="420" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-27" value="defaults.py + YAML loader" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="500" y="536" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-28" value="policy service · Golden Controls catalogue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="820" y="536" width="460" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-29" value="R9 gate vocabulary" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;align=center;" vertex="1" parent="1"><mxGeometry x="1280" y="536" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-30" value="Storage (M4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="80" y="610" width="420" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-31" value="SQLite (stdlib)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="500" y="610" width="320" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-32" value="Postgres · event bus · WORM audit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="820" y="610" width="460" height="66" as="geometry"/></mxCell>
+        <mxCell id="seams-33" value="audit lifecycle" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;align=center;" vertex="1" parent="1"><mxGeometry x="1280" y="610" width="320" height="66" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="persist" name="5 · Persistence &amp; Audit (M3 + M4)">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="persist-1" value="Replayable, tamper-evident audit trail" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=22;fontColor=#212121;" vertex="1" parent="1"><mxGeometry x="560" y="20" width="560" height="40" as="geometry"/></mxCell>
+        <mxCell id="persist-2" value="M3 · RUN BUNDLE  runs/RUN-…/" style="swimlane;whiteSpace=wrap;html=1;fillColor=#B2EBF2;strokeColor=#00838F;fontColor=#006064;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="80" y="130" width="520" height="470" as="geometry"/></mxCell>
+        <mxCell id="persist-3" value="run_config.json — self-describing config + scenario source" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="persist-2"><mxGeometry x="16" y="46" width="488" height="38" as="geometry"/></mxCell>
+        <mxCell id="persist-4" value="gate_decision.json — decision + matched rule + policy version" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="persist-2"><mxGeometry x="16" y="92" width="488" height="38" as="geometry"/></mxCell>
+        <mxCell id="persist-5" value="findings.json — normalized findings (OWASP tags)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="persist-2"><mxGeometry x="16" y="138" width="488" height="38" as="geometry"/></mxCell>
+        <mxCell id="persist-6" value="evidence_manifest.json — every artifact + sha256" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="persist-2"><mxGeometry x="16" y="184" width="488" height="38" as="geometry"/></mxCell>
+        <mxCell id="persist-7" value="replay_manifest.json — candidates + verdicts + control inputs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="persist-2"><mxGeometry x="16" y="230" width="488" height="38" as="geometry"/></mxCell>
+        <mxCell id="persist-8" value="policy_manifest.json — config_hash + sources" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="persist-2"><mxGeometry x="16" y="276" width="488" height="38" as="geometry"/></mxCell>
+        <mxCell id="persist-9" value="scenario_manifest.json — per-harness scenario hash" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="persist-2"><mxGeometry x="16" y="322" width="488" height="38" as="geometry"/></mxCell>
+        <mxCell id="persist-10" value="result_bundle.json — full bundle for report/dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="persist-2"><mxGeometry x="16" y="368" width="488" height="38" as="geometry"/></mxCell>
+        <mxCell id="persist-11" value="evidence/ — per-turn input + output (content-hashed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="persist-2"><mxGeometry x="16" y="414" width="488" height="38" as="geometry"/></mxCell>
+        <mxCell id="persist-12" value="M4 · SQLite CONTROL PLANE (7 tables)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#8E24AA;fontColor=#4A148C;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="680" y="130" width="520" height="360" as="geometry"/></mxCell>
+        <mxCell id="persist-13" value="assets · asset_versions (content-hashed, idempotent)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="persist-12"><mxGeometry x="16" y="46" width="488" height="40" as="geometry"/></mxCell>
+        <mxCell id="persist-14" value="use_cases" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="persist-12"><mxGeometry x="16" y="96" width="488" height="40" as="geometry"/></mxCell>
+        <mxCell id="persist-15" value="evaluation_runs (status machine)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="persist-12"><mxGeometry x="16" y="146" width="488" height="40" as="geometry"/></mxCell>
+        <mxCell id="persist-16" value="gate_decisions (policy-versioned)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="persist-12"><mxGeometry x="16" y="196" width="488" height="40" as="geometry"/></mxCell>
+        <mxCell id="persist-17" value="audit_events (append-only trail)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="persist-12"><mxGeometry x="16" y="246" width="488" height="40" as="geometry"/></mxCell>
+        <mxCell id="persist-18" value="event_outbox (in-process; evaluation.completed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="persist-12"><mxGeometry x="16" y="296" width="488" height="40" as="geometry"/></mxCell>
+        <mxCell id="persist-19" value="validate-run  (separate process, no model calls)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;fontColor=#B71C1C;fontStyle=1;fontSize=14;" vertex="1" parent="1"><mxGeometry x="680" y="520" width="520" height="80" as="geometry"/></mxCell>
+        <mxCell id="persist-20" value="re-hash every response
+= chain of custody" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;fontColor=#006064;" vertex="1" parent="1"><mxGeometry x="680" y="630" width="250" height="60" as="geometry"/></mxCell>
+        <mxCell id="persist-21" value="1 edited byte → FAIL
+(exit 1)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;fontColor=#B71C1C;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="950" y="630" width="250" height="60" as="geometry"/></mxCell>
+        <mxCell id="persist-22" value="evaluate persists" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;endArrow=block;" edge="1" parent="1" source="persist-2" target="persist-12"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="persist-23" value="replay from disk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="persist-2" target="persist-19"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="persist-24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="persist-19" target="persist-20"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="persist-25" value="tamper" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="persist-19" target="persist-21"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="cat" name="6 · Component Catalog">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="cat-1" value="Component Catalog — module · purpose" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=22;fontColor=#212121;" vertex="1" parent="1"><mxGeometry x="520" y="16" width="640" height="36" as="geometry"/></mxCell>
+        <mxCell id="cat-2" value="DOMAIN — pure control-plane logic (stdlib only)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#C5CAE9;strokeColor=#3F51B5;fontColor=#1A237E;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="40" y="70" width="360" height="40" as="geometry"/></mxCell>
+        <mxCell id="cat-3" value="contracts.py
+Canonical schemas (Finding, GateDecision, HarnessSpec, UseCase) + hashing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="1"><mxGeometry x="40" y="116" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-4" value="gate.py
+Deterministic gate (A1): one decision over findings, no LLM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="1"><mxGeometry x="40" y="174" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-5" value="aggregate.py
+Fuse judge quorum + detector hits; detectors floor the judge (C3)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="1"><mxGeometry x="40" y="232" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-6" value="risk.py
+Weighted risk score → tier → required harness pack (W1)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="1"><mxGeometry x="40" y="290" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-7" value="patterns.py
+Shared regexes (SSN/account/action) + refusal check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="1"><mxGeometry x="40" y="348" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-8" value="secrets.py
+Deterministic secret scanner (redacted) for quarantine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="1"><mxGeometry x="40" y="406" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-9" value="invariants.py
+Registry of load-bearing invariants (A1/C3/A8…)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#3F51B5;fontColor=#1A237E;" vertex="1" parent="1"><mxGeometry x="40" y="464" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-10" value="PORTS — seams (Protocols)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00897B;fontColor=#004D40;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="430" y="70" width="360" height="40" as="geometry"/></mxCell>
+        <mxCell id="cat-11" value="model_port.py
+ModelPort (B2): the one path every model call goes through" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="430" y="116" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-12" value="evidence_port.py
+EvidencePort (B4): capture + read hashed evidence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="430" y="174" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-13" value="detector_port.py
+Detector seam: deterministic content detectors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="430" y="232" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-14" value="driver_port.py
+HarnessDriver (B3): pluggable execution engine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="430" y="290" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-15" value="STORAGE + REGISTRY + CONFIG" style="swimlane;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#8E24AA;fontColor=#4A148C;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="430" y="368" width="360" height="40" as="geometry"/></mxCell>
+        <mxCell id="cat-16" value="storage/repository.py
+SQLite lifecycle: assets/versions/runs/gate/audit/outbox" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="1"><mxGeometry x="430" y="414" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-17" value="registry/harnesses.py
+Harness suite (specs + scenarios) + external corpus loader" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="1"><mxGeometry x="430" y="472" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-18" value="config/*.yaml
+Operator overrides: risk_weights, quorum, budgets, golden_controls, model_pricing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontColor=#4A148C;" vertex="1" parent="1"><mxGeometry x="430" y="530" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-19" value="APPLICATION — orchestration (domain + ports only)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1976D2;fontColor=#0D47A1;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="820" y="70" width="360" height="40" as="geometry"/></mxCell>
+        <mxCell id="cat-20" value="orchestrator.py
+W0 end-to-end run; wires the workflow; returns the bundle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="820" y="116" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-21" value="runner.py
+BuiltinDriver (B3): run a spec — target + quorum + detectors + budget" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="820" y="174" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-22" value="judge.py
+Judge dispatch per lens (real LLM judge / offline sim)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="820" y="232" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-23" value="calibration.py
+Scenario-based calibration vs the live target" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="820" y="290" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-24" value="judge_calibration.py
+DR-11 verdict-level calibration → gate-eligibility" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="820" y="348" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-25" value="contextualize.py
+W1 wrapper over risk scoring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="820" y="406" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-26" value="selection.py
+W2 plan + skips + coverage_complete (fail-closed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="820" y="464" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-27" value="governance.py
+H5.1 finding-lifecycle self-check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="820" y="522" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-28" value="quarantine.py
+Ingress secrets scan → QuarantineDecision" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="820" y="580" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-29" value="APPLICATION (cont.)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1976D2;fontColor=#0D47A1;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="1210" y="70" width="360" height="40" as="geometry"/></mxCell>
+        <mxCell id="cat-30" value="replay.py
+Mode-A replay: reproduce findings + gate from evidence (C4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1210" y="116" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-31" value="bundle.py
+Persist run bundle + validate_run_bundle (replay from disk)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1210" y="174" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-32" value="endpoints.py
+HTTP/endpoint-asset resolution (env-ref secrets)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1210" y="232" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-33" value="readiness.py
+MVP-vs-enterprise readiness assessment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1210" y="290" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-34" value="remediation.py
+Advisory remediation records" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1210" y="348" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-35" value="stability.py
+Repeat-run Jaccard stability metric" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1210" y="406" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-36" value="acceptance.py
+Invariant acceptance suite (the platform&#x27;s own CI gate)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1210" y="464" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-37" value="probe.py
+Single-prompt interactive chain (streams live events)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="1210" y="522" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-38" value="ADAPTERS — concrete (only layer importing SDKs)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#F57C00;fontColor=#E65100;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="1600" y="70" width="360" height="40" as="geometry"/></mxCell>
+        <mxCell id="cat-39" value="model/mock_adapter.py
+Offline deterministic mock target (vulnerable/hardened)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="116" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-40" value="model/litellm_adapter.py
+Real provider via LiteLLM + cost accounting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="174" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-41" value="model/http_adapter.py
+HTTP target (app / agent endpoint)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="232" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-42" value="detectors/regex_detectors.py
+Regex SSN/account/tool/CPNI floor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="290" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-43" value="detectors/presidio_detector.py
+Presidio PII/CPNI (augments the regex floor)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="348" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-44" value="detectors/detoxify_detector.py
+Detoxify toxicity floor for H1.3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="406" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-45" value="drivers/overlay_driver.py
+Adaptive multi-turn escalation driver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="464" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-46" value="drivers/inspect_driver.py
+Inspect AI bridge (ModelAPI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="522" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-47" value="drivers/pyrit_driver.py
+Microsoft PyRIT bridge (PromptChatTarget)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="580" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-48" value="drivers/{nemo,garak}.py
+Guarded, model-bound (stay installable)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="638" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-49" value="evidence/file_evidence.py
+File-backed hashed evidence store" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="696" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-50" value="config/{defaults,loader}.py
+Baked-in defaults + YAML override loader (B6)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="1600" y="754" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-51" value="INTERFACE — composition root (wires concretes)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;fontColor=#1B5E20;fontStyle=1;startSize=30;" vertex="1" parent="1"><mxGeometry x="1990" y="70" width="360" height="40" as="geometry"/></mxCell>
+        <mxCell id="cat-52" value="factory.py
+Build components from config; enforce judge independence (A4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="1990" y="116" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-53" value="cli.py
+CLI: run/verify/validate-run/db-init/asset-register/evaluate/…" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="1990" y="174" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-54" value="dashboard.py
+Self-contained HTML dashboard (pass/warn/fail + panels)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="1990" y="232" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-55" value="probe_server.py
+SSE server for the live interactive probe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="1990" y="290" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-56" value="report.py
+Human-readable assurance report" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="1990" y="348" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-57" value="capabilities.py
+Plugin / dependency inventory (lab vs enterprise)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="1990" y="406" width="360" height="52" as="geometry"/></mxCell>
+        <mxCell id="cat-58" value="demo_target.py
+Local demo HTTP target server" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;fontColor=#1B5E20;" vertex="1" parent="1"><mxGeometry x="1990" y="464" width="360" height="52" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
