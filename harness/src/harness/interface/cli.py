@@ -54,6 +54,19 @@ def _overrides(args) -> dict:
         ov["HTTP_HEADERS"] = args.target_header
     if getattr(args, "offline_judge", False):
         ov["OFFLINE_JUDGE"] = True
+    # Req 1 — model switching: a registry id or a raw LiteLLM id; switching implies the real provider.
+    model, judge = getattr(args, "model", None), getattr(args, "judge_model", None)
+    if model or judge:
+        from ..adapters.config.loader import load_model_registry, resolve_model_ref
+        reg = load_model_registry(getattr(args, "config", None))
+        ov.setdefault("PROVIDER_MODE", "litellm")
+        if model:
+            m, trust = resolve_model_ref(model, reg)
+            ov["LITELLM_MODEL"] = m
+            if trust:
+                ov["INHERENT_TRUST"] = trust
+        if judge:
+            ov["JUDGE_MODEL"], _ = resolve_model_ref(judge, reg)
     return ov
 
 
@@ -378,6 +391,26 @@ def cmd_run_show(args) -> int:
     return 0
 
 
+_TRUST_KEY_ENV = {"anthropic": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY",
+                  "azure": "AZURE_API_KEY", "bedrock": "AWS_ACCESS_KEY_ID", "ollama": None}
+
+
+def cmd_models(args) -> int:
+    from ..adapters.config.loader import load_model_registry
+    reg = load_model_registry(args.config)
+    print("model registry — selectable via --model / --judge-model\n")
+    print(f"  {'id':11s} {'trust':10s} {'roles':15s} {'key?':5s} model")
+    print("  " + "-" * 74)
+    for m in reg:
+        env = _TRUST_KEY_ENV.get(m.get("provider"), None)
+        key = "n/a" if env is None else ("yes" if os.environ.get(env) else "no")
+        print(f"  {m['id']:11s} {m.get('inherent_trust', '?'):10s} "
+              f"{','.join(m.get('roles', [])):15s} {key:5s} {m['model']}")
+    print("\n  inherent trust (governance-assigned): untrusted < low < moderate < high")
+    print("  switch: harness run --provider litellm --model haiku --judge-model sonnet   (judge != target, A4)")
+    return 0
+
+
 def cmd_info(args) -> int:
     policy = factory.load_policy(config_dir=args.config)
     print(f"enterprise-harness v{__version__}")
@@ -480,6 +513,11 @@ def build_parser() -> argparse.ArgumentParser:
                         help="HTTP header for --provider http (repeatable)")
         sp.add_argument("--offline-judge", action="store_true",
                         help="demo-only: simulate semantic judge when no real judge key is available")
+        sp.add_argument("--model", metavar="ID",
+                        help="target model to switch to: a registry id (see `harness models`) or a raw "
+                             "LiteLLM id (provider/model). Implies --provider litellm.")
+        sp.add_argument("--judge-model", dest="judge_model", metavar="ID",
+                        help="independent judge model (must differ from target, A4).")
 
     r = sub.add_parser("run", help="run the assurance chain")
     common(r)
@@ -553,6 +591,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     pl = sub.add_parser("plugins", help="inventory plugins/dependencies runnable in the lab")
     pl.set_defaults(func=cmd_plugins)
+
+    mo = sub.add_parser("models", help="list selectable models + their inherent-trust tier")
+    mo.add_argument("--config", help="config directory (default: <repo>/config)")
+    mo.set_defaults(func=cmd_models)
 
     doc = sub.add_parser("doctor", help="preflight the environment and enterprise readiness")
     common(doc)

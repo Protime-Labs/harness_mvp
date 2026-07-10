@@ -1,0 +1,76 @@
+<mxfile host="app.diagrams.net" agent="harness-neg-gen">
+  <diagram id="neg" name="1 · Control Plane as Negotiator">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" page="1" pageWidth="1600" pageHeight="1000"><root><mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="neg1" value="Control Plane as Negotiator — inputs → posture → decision" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=20;fontColor=#212121;" vertex="1" parent="1"><mxGeometry x="500" y="20" width="560" height="34" as="geometry"/></mxCell>
+        <mxCell id="neg2" value="Deterministic · config-driven · no LLM (A1 preserved)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=12;fontColor=#616161;" vertex="1" parent="1"><mxGeometry x="470" y="56" width="620" height="24" as="geometry"/></mxCell>
+        <mxCell id="neg3" value="INHERENT TRUST (Req 1)
+model registry · untrusted…high
+(governance-assigned)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="120" y="130" width="260" height="70" as="geometry"/></mxCell>
+        <mxCell id="neg4" value="USE-CASE RISK TIER (F1–F3)
+weighted score → low|med|high" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="420" y="130" width="260" height="70" as="geometry"/></mxCell>
+        <mxCell id="neg5" value="MODE
+operations (inline) | assurance (red-team)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="720" y="130" width="260" height="70" as="geometry"/></mxCell>
+        <mxCell id="neg6" value="NEGOTIATE(trust, risk, mode)
+union(risk pack, require_when, trust escalation)
++ criteria profile + gate strictness" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#5E35B1;fontColor=#311B92;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="320" y="280" width="460" height="80" as="geometry"/></mxCell>
+        <mxCell id="neg7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg3" target="neg6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg4" target="neg6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg5" target="neg6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg10" value="HARNESS PLAN
+which harnesses run (+ why)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="120" y="430" width="260" height="60" as="geometry"/></mxCell>
+        <mxCell id="neg11" value="CRITERIA PROFILE
+OWASP-LLM / ATLAS in scope" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="420" y="430" width="260" height="60" as="geometry"/></mxCell>
+        <mxCell id="neg12" value="GATE STRICTNESS
+fail-severity · quorum-N" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;fontColor=#004D40;" vertex="1" parent="1"><mxGeometry x="720" y="430" width="260" height="60" as="geometry"/></mxCell>
+        <mxCell id="neg13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg6" target="neg10"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg6" target="neg11"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg6" target="neg12"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg16" value="DATA PLANE runs the plan
+target model · detectors · judge quorum" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="320" y="560" width="460" height="60" as="geometry"/></mxCell>
+        <mxCell id="neg17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg10" target="neg16"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg11" target="neg16"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg19" value="DETERMINISTIC GATE
+approve·warn·block·manual_review" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;fontColor=#B71C1C;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="420" y="670" width="260" height="60" as="geometry"/></mxCell>
+        <mxCell id="neg20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg16" target="neg19"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg21" value="thresholds" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;dashed=1;" edge="1" parent="1" source="neg12" target="neg19"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg22" value="SCORECARD (vuln × trust)
+per-criterion pass/warn/fail
++ trust reconciliation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F8E9;strokeColor=#558B2F;fontColor=#33691E;" vertex="1" parent="1"><mxGeometry x="420" y="780" width="260" height="70" as="geometry"/></mxCell>
+        <mxCell id="neg23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;strokeColor=#455A64;fontColor=#37474F;" edge="1" parent="1" source="neg19" target="neg22"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="neg24" value="TRUST RECONCILIATION
+Declared inherent trust vs OBSERVED behaviour.
+A high-trust model that fails a criterion = an
+observed downgrade → manual_review (cf. F7)." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;" vertex="1" parent="1"><mxGeometry x="1040" y="280" width="320" height="130" as="geometry"/></mxCell>
+      </root></mxGraphModel>
+  </diagram>
+  <diagram id="mat" name="2 · Trust × Risk + Modes">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" page="1" pageWidth="1600" pageHeight="1000"><root><mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="mat1" value="Two axes negotiate the posture; two modes apply it" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=20;fontColor=#212121;" vertex="1" parent="1"><mxGeometry x="480" y="20" width="520" height="34" as="geometry"/></mxCell>
+        <mxCell id="mat2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#607D8B;fontColor=#263238;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="360" y="110" width="200" height="40" as="geometry"/></mxCell>
+        <mxCell id="mat3" value="low-risk use-case" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#607D8B;fontColor=#263238;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="560" y="110" width="260" height="40" as="geometry"/></mxCell>
+        <mxCell id="mat4" value="high-risk use-case" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#607D8B;fontColor=#263238;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="820" y="110" width="260" height="40" as="geometry"/></mxCell>
+        <mxCell id="mat5" value="HIGH trust model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#607D8B;fontColor=#263238;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="360" y="150" width="200" height="70" as="geometry"/></mxCell>
+        <mxCell id="mat6" value="light" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B0BEC5;fontColor=#37474F;" vertex="1" parent="1"><mxGeometry x="560" y="150" width="260" height="70" as="geometry"/></mxCell>
+        <mxCell id="mat7" value="risk-tier pack" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B0BEC5;fontColor=#37474F;" vertex="1" parent="1"><mxGeometry x="820" y="150" width="260" height="70" as="geometry"/></mxCell>
+        <mxCell id="mat8" value="UNTRUSTED model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#607D8B;fontColor=#263238;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="360" y="220" width="200" height="70" as="geometry"/></mxCell>
+        <mxCell id="mat9" value="risk-tier pack + escalation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B0BEC5;fontColor=#37474F;" vertex="1" parent="1"><mxGeometry x="560" y="220" width="260" height="70" as="geometry"/></mxCell>
+        <mxCell id="mat10" value="FULL battery + stricter gate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;fontColor=#B71C1C;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="820" y="220" width="260" height="70" as="geometry"/></mxCell>
+        <mxCell id="mat11" value="lower trust only ADDS harnesses + tightens the gate — never subtracts (A11 monotonicity on the trust axis)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;" vertex="1" parent="1"><mxGeometry x="360" y="300" width="720" height="40" as="geometry"/></mxCell>
+        <mxCell id="mat12" value="MODE: operations  (regular runtime)
+
+• inline guardrail on live traffic
+• deterministic detectors + critical criteria subset
+• detector floor only (no LLM judge on hot path)
+• budget-tight · low latency
+• gate: allow / block inline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontColor=#0D47A1;" vertex="1" parent="1"><mxGeometry x="300" y="400" width="380" height="260" as="geometry"/></mxCell>
+        <mxCell id="mat13" value="MODE: assurance  (testing modules)
+
+• offline red-team, isolated + synthetic (R7/A6)
+• full adversarial battery
+• N independent judges (A4/A5) + detector floor
+• full budget (A8/C6)
+• gate: approve/warn/block/manual_review + evidence bundle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontColor=#E65100;" vertex="1" parent="1"><mxGeometry x="760" y="400" width="380" height="260" as="geometry"/></mxCell>
+        <mxCell id="mat14" value="SAME control plane governs both — the mode selects the criteria profile and whether the judge quorum runs. No LLM in the gate/risk path in either mode (A1)." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontColor=#6D4C41;align=left;spacingLeft=8;" vertex="1" parent="1"><mxGeometry x="300" y="690" width="840" height="50" as="geometry"/></mxCell>
+      </root></mxGraphModel>
+  </diagram>
+</mxfile>

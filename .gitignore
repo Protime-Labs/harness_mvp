@@ -6,6 +6,12 @@ __pycache__/
 build/
 dist/
 
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
 # Harness run artifacts (persisted bundles, dashboards, evidence dumps)
 runs/
 **/runs/

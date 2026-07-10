@@ -37,6 +37,7 @@ DEFAULT_CONFIG = {
     "DRIVER": "builtin",                           # B3 driver: "builtin" | "inspect" (Inspect AI eval)
     "REDACT": True,
     "STRICT_CONFIG": None,                          # F5: None -> strict unless PROVIDER_MODE == "mock"
+    "INHERENT_TRUST": None,                          # Req2: None -> derived from the selected model, else this
 }
 
 # --- risk model (BF-10 — PROVISIONAL, governance/risk owner tunes) ----------------------
@@ -83,6 +84,23 @@ REGISTRY = {
     # Phase 3 — declared, not implemented in the core:
     "H4.4": {"implemented": False},
 }
+
+# --- model registry (Req 1) — selectable models + governance-assigned INHERENT TRUST -----------
+# inherent_trust = how much we trust the model BEFORE testing (untrusted<low<moderate<high); it is
+# a governance judgement (provisional), NOT intrinsic. It drives negotiation (Req 2): lower trust ->
+# more harnesses + stricter gate. IDs are aliases used by `--model`/`--judge-model`. Operator-
+# editable via config/models.yaml. Model strings are LiteLLM ids (provider/model).
+INHERENT_TRUST_TIERS = ["untrusted", "low", "moderate", "high"]  # ordered least -> most trusted
+MODEL_REGISTRY = [
+    {"id": "haiku",     "provider": "anthropic", "model": "anthropic/claude-haiku-4-5-20251001",
+     "inherent_trust": "high",      "roles": ["target", "judge"], "note": "frontier lab, safety-trained"},
+    {"id": "sonnet",    "provider": "anthropic", "model": "anthropic/claude-sonnet-4-5",
+     "inherent_trust": "high",      "roles": ["judge", "target"], "note": "default independent judge"},
+    {"id": "gpt4o",     "provider": "openai",    "model": "openai/gpt-4o",
+     "inherent_trust": "moderate",  "roles": ["target", "judge"], "note": "reputable third party"},
+    {"id": "oss-local", "provider": "ollama",    "model": "ollama/llama3",
+     "inherent_trust": "untrusted", "roles": ["target"],          "note": "open-weight / unknown provenance"},
+]
 
 # --- Golden Controls domains (BF-17 — PLACEHOLDER for the enterprise catalogue) ----------------
 GOLDEN_CONTROL_DOMAINS = [

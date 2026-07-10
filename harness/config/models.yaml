@@ -1,0 +1,10 @@
+# B6 — Model registry (Req 1). Owner: platform + governance. Selectable models for --model /
+# --judge-model, each tagged with a governance-assigned INHERENT TRUST tier that drives negotiation
+# (Req 2): untrusted < low < moderate < high. Lower trust -> more harnesses + a stricter gate.
+# `model` is a LiteLLM id (provider/model). `roles` = which slot the model may fill.
+schema: harness/models/v1
+models:
+  - { id: haiku,     provider: anthropic, model: anthropic/claude-haiku-4-5-20251001, inherent_trust: high,      roles: [target, judge], note: "frontier lab, safety-trained" }
+  - { id: sonnet,    provider: anthropic, model: anthropic/claude-sonnet-4-5,          inherent_trust: high,      roles: [judge, target], note: "default independent judge" }
+  - { id: gpt4o,     provider: openai,    model: openai/gpt-4o,                         inherent_trust: moderate,  roles: [target, judge], note: "reputable third party" }
+  - { id: oss-local, provider: ollama,    model: ollama/llama3,                         inherent_trust: untrusted, roles: [target],        note: "open-weight / unknown provenance" }

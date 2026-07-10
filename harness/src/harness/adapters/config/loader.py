@@ -48,13 +48,34 @@ def _load_yaml(path: str) -> dict:
 
 
 # F5 — governance YAML must not degrade silently: unknown top-level keys are a misconfiguration.
-_CONFIG_YAMLS = ("risk_weights.yaml", "quorum.yaml", "budgets.yaml", "golden_controls.yaml", "model_pricing.yaml")
+_CONFIG_YAMLS = ("risk_weights.yaml", "quorum.yaml", "budgets.yaml", "golden_controls.yaml",
+                 "model_pricing.yaml", "models.yaml")
 _ALLOWED_KEYS = {
     "risk_weights.yaml": {"weights", "cutoffs", "foundational_pack", "packs", "require_when"},
     "golden_controls.yaml": {"schema", "status", "external_dependency", "note", "domains", "controls", "catalogue"},
     "model_pricing.yaml": {"schema", "models"},
+    "models.yaml": {"schema", "models"},
     # budgets.yaml + quorum.yaml merge into CONFIG -> validated against DEFAULT_CONFIG keys below.
 }
+
+
+def load_model_registry(config_dir: str = None) -> list:
+    """The selectable model registry (Req 1): defaults, overridden by config/models.yaml."""
+    cfg_dir = config_dir or _default_config_dir()
+    y = _load_yaml(os.path.join(cfg_dir, "models.yaml"))
+    return (y.get("models") if y else None) or list(defaults.MODEL_REGISTRY)
+
+
+def resolve_model_ref(ref: str, registry: list):
+    """Resolve a `--model` value: a registry id -> (model_string, inherent_trust); a raw LiteLLM id
+    (provider/model) -> (ref, None). Unknown alias -> ValueError (fail loud, not silent)."""
+    for m in registry:
+        if m.get("id") == ref:
+            return m["model"], m.get("inherent_trust")
+    if "/" in ref:
+        return ref, None
+    raise ValueError(f"unknown model '{ref}'. Known ids: {[m.get('id') for m in registry]}, "
+                     f"or pass a raw LiteLLM id (provider/model).")
 
 
 def _check_keys(fname: str, data: dict, allowed) -> None:
@@ -106,6 +127,7 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
     pack = list(defaults.FOUNDATIONAL_PACK)
     packs_by_tier = copy.deepcopy(defaults.PACKS_BY_TIER)   # per-risk-tier packs (F2)
     require_when = copy.deepcopy(defaults.REQUIRE_WHEN)      # mandatory clauses (F3)
+    models_registry = list(defaults.MODEL_REGISTRY)         # selectable models (Req 1)
     golden_controls = {"domains": {}}
 
     # F5 — STRICT_CONFIG (default: true unless mock provider). Decided from the override/default
@@ -127,12 +149,16 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
         y_risk = _load_yaml(os.path.join(cfg_dir, "risk_weights.yaml"))
         y_controls = _load_yaml(os.path.join(cfg_dir, "golden_controls.yaml"))
         y_pricing = _load_yaml(os.path.join(cfg_dir, "model_pricing.yaml"))
+        y_models = _load_yaml(os.path.join(cfg_dir, "models.yaml"))
         # validate top-level keys up front (a typo must fail, not silently merge into nothing)
         _check_keys("budgets.yaml", y_budgets, defaults.DEFAULT_CONFIG.keys())
         _check_keys("quorum.yaml", y_quorum, defaults.DEFAULT_CONFIG.keys())
         _check_keys("risk_weights.yaml", y_risk, _ALLOWED_KEYS["risk_weights.yaml"])
         _check_keys("golden_controls.yaml", y_controls, _ALLOWED_KEYS["golden_controls.yaml"])
         _check_keys("model_pricing.yaml", y_pricing, _ALLOWED_KEYS["model_pricing.yaml"])
+        _check_keys("models.yaml", y_models, _ALLOWED_KEYS["models.yaml"])
+        if y_models and y_models.get("models"):
+            models_registry = y_models["models"]; sources.append("models.yaml")
         if y_budgets:
             cfg = _deep_merge(cfg, y_budgets); sources.append("budgets.yaml")
         if y_quorum:
@@ -192,6 +218,7 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
         "foundational_pack": pack,
         "packs": packs_by_tier,
         "require_when": require_when,
+        "models": models_registry,
         "policy_hash": policy_hash,
         "golden_controls": golden_controls,
         "sources": sources,
