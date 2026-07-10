@@ -144,7 +144,8 @@ def run_assurance(
             "findings": [], "evidence_root": store.root,
             "_findings": [], "_verdicts": [], "_manifest": [],
             "_turns": [], "_cost_status": {"governed": _cost_governed(cfg), "known": True},
-            "_context_status": {"unknown_attributes": [], "declaration_mismatch": False},
+            "_context_status": {"unknown_attributes": [], "declaration_mismatch": False,
+                                "trust_downgrade": False},
         }
 
     # W3 run each attack harness (driver honors the run contract; judge quorum inside)
@@ -170,14 +171,22 @@ def run_assurance(
     # DR-11 verdict-level judge calibration (target-independent; the real-path gate-eligibility basis)
     judge_cal = calibrate_judge(judge_adapter or adapter, cfg, detectors)
 
+    # Req 2 — vulnerability × trust scorecard, computed BEFORE the gate so a trust downgrade can gate.
+    findings_dicts = [asdict(f) for f in all_findings]
+    _profile_name, _profile_ids = resolve_profile(cfg, policy.get("criteria_profiles", {}))
+    scorecard = build_scorecard(_profile_ids, policy.get("criteria", {}), attack_ids, findings_dicts,
+                                trust=cfg.get("INHERENT_TRUST"), mode=cfg.get("MODE", "assurance"),
+                                profile_name=_profile_name)
+
     # Cost governance: on a cost-governed run, a turn whose price could not be determined leaves the
     # budget unassured -> the gate routes to manual_review (never a silent over-budget approve).
     cost_status = {"governed": _cost_governed(cfg),
                    "known": all(r["metrics"].get("cost_known", True) for r in results.values())}
-    # Context integrity: unrecognized risk attributes (F1) + declared-vs-observed mismatch (F7).
+    # Context integrity: unknown attrs (F1), declared-vs-observed data (F7), inherent-trust downgrade (Req2).
     context_status = {
         "unknown_attributes": ctx.get("unknown_attributes", []),
         "declaration_mismatch": _declaration_mismatch(use_case, all_findings),
+        "trust_downgrade": scorecard["trust_downgrade"],
     }
 
     # W8 gate — the single deterministic decision (control plane, no LLM). Coverage fails closed when
@@ -212,13 +221,6 @@ def run_assurance(
     mvp_readiness = assess_mvp_readiness(
         policy, store=store, detectors=detectors,
         driver_name=getattr(driver, "name", None), specs=specs)
-
-    # Req 2 — vulnerability × trust scorecard (a deterministic view of the findings the gate saw)
-    findings_dicts = [asdict(f) for f in all_findings]
-    _profile_name, _profile_ids = resolve_profile(cfg, policy.get("criteria_profiles", {}))
-    scorecard = build_scorecard(_profile_ids, policy.get("criteria", {}), attack_ids, findings_dicts,
-                                trust=cfg.get("INHERENT_TRUST"), mode=cfg.get("MODE", "assurance"),
-                                profile_name=_profile_name)
 
     return {
         "asset": asset,

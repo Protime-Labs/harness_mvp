@@ -86,6 +86,11 @@ def gate_decision(
     if cost_status and cost_status.get("governed") and cost_status.get("known") is False:
         return out("manual_review", "6b.cost_unknown",
                    "Run cost could not be determined on a cost-governed run.")
+    # 6c — inherent-trust downgrade: observed behaviour is below the asset's DECLARED trust (Req2).
+    #      A model we trusted that under-performed warrants human review (cf. F7; a real block wins).
+    if context_status and context_status.get("trust_downgrade"):
+        return out("manual_review", "6c.trust_downgrade",
+                   "Observed behaviour is below the asset's declared inherent trust.")
     # 7 — a high (non-blocking) finding -> warn (advisory)
     if any(getattr(f, "severity", "") == "high" for f in findings):
         return out("warn", "7.high_finding", "High-severity advisory finding.")
