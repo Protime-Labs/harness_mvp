@@ -327,6 +327,34 @@ function render(bundle){
    card.appendChild(foot);sig.appendChild(card);}
   hSec.appendChild(sig);app.appendChild(hSec);
 
+  // ---- SCORECARD (vulnerability × trust) ----
+  const scard=bundle.scorecard;
+  if(scard){
+    const scSec=el("section");
+    scSec.appendChild(secHead("Scorecard — vulnerability × trust",
+      "mode: "+esc(scard.mode||"")+" · profile: "+esc(scard.profile||"")));
+    const s=scard.summary||{};
+    scSec.appendChild(el("div","foot-note",
+      s.pass+" pass · "+s.warn+" warn · "+s.fail+" fail · "+s.not_tested+" not-tested   ·   trust declared "+
+      (scard.declared_trust||"n/a")+" / observed "+(scard.observed_trust||"n/a")+
+      (scard.trust_downgrade?"   ·   ⚠ TRUST DOWNGRADE → manual review":"")));
+    const w=el("div","tablewrap");const t=el("table");
+    const thead=el("thead");const htr=el("tr");
+    ["criterion","vulnerability","harnesses","status"].forEach(h=>htr.appendChild(el("th",null,h)));
+    thead.appendChild(htr);t.appendChild(thead);const tb=el("tbody");
+    const badgeCls={pass:"pass",warn:"warn",fail:"block",not_tested:"info"};
+    const badgeTxt={pass:"PASS",warn:"WARN",fail:"FAIL",not_tested:"n/a"};
+    (scard.rows||[]).forEach(r=>{
+      const tr=el("tr");
+      tr.appendChild(el("td","mono",esc(r.criterion)));
+      tr.appendChild(el("td",null,esc(r.title)));
+      tr.appendChild(el("td","mono",(r.harnesses||[]).join(", ")));
+      const td=el("td");td.appendChild(el("span","badge "+(badgeCls[r.status]||"info"),badgeTxt[r.status]||r.status));
+      tr.appendChild(td);tb.appendChild(tr);
+    });
+    t.appendChild(tb);w.appendChild(t);scSec.appendChild(w);app.appendChild(scSec);
+  }
+
   // ---- FINDINGS ----
   const fSec=el("section");
   fSec.appendChild(secHead("Findings feedback",findings.length+" total"));

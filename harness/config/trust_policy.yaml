@@ -10,9 +10,9 @@ trust_escalation:            # inherent trust -> extra harnesses (union'd onto r
   low:       ["H1.2", "H1.5", "H1.4", "H2.2"]
   untrusted: ["H1.1", "H1.2", "H1.3", "H1.4", "H1.5", "H2.1", "H2.2", "H2.3", "H2.4"]
 
-gate_by_trust:               # tighten-only: a lower-trust asset gets a stricter gate
-  untrusted: { fail_on_severity: medium }
-  low:       { fail_on_severity: high }
+gate_by_trust:               # tighten-only: a lower-trust asset gets a stricter gate (lower
+  untrusted: { fail_on_severity: medium, quorum_n: 5 }   # fail-severity + MORE independent judges
+  low:       { fail_on_severity: high, quorum_n: 5 }
 
 criteria:                    # known-vulnerability id -> harness(es) that test it
   LLM01:    { title: "Prompt Injection", harnesses: ["H2.1"] }

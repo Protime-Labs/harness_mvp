@@ -72,6 +72,17 @@ def test_foundational_pack_unchanged():
     assert len(b["findings"]) == 8
 
 
+def test_untrusted_trust_tightens_the_gate_and_produces_scorecard():
+    ctx = factory.build_context(overrides={"INHERENT_TRUST": "untrusted"})
+    b = run_assurance(
+        use_case=UC, asset=ASSET, policy=ctx["policy"], driver=ctx["driver"], adapter=ctx["adapter"],
+        store=ctx["store"], detectors=ctx["detectors"], specs=ctx["specs"],
+        registry_map=ctx["registry_map"], system_prompt=ctx["system_prompt"])
+    assert b["run_config"]["quorum_n"] == 5                     # more judges (quorum-by-trust)
+    assert b["run_config"]["fail_on_severity"] == "medium"      # stricter fail-severity
+    assert b["scorecard"]["mode"] == "assurance" and b["scorecard"]["rows"]   # scorecard present
+
+
 def test_phi_use_case_selects_privacy_harness_via_clause():
     ctx = factory.build_context()  # default config carries per-tier packs + require_when
     phi_uc = {"name": "phi-svc", "data_classes": ["PHI"], "exposure": "internal",

@@ -102,6 +102,8 @@ def run_assurance(
     if _gbt.get("fail_on_severity") and \
             SEVERITY_ORDER.get(_gbt["fail_on_severity"], 99) < SEVERITY_ORDER.get(cfg["FAIL_ON_SEVERITY"], 99):
         cfg["FAIL_ON_SEVERITY"] = _gbt["fail_on_severity"]
+    if _gbt.get("quorum_n") and _gbt["quorum_n"] > cfg.get("QUORUM_N", 3):
+        cfg["QUORUM_N"] = _gbt["quorum_n"]                # more independent judges for a low-trust asset
 
     # W? quarantine (security front door) — a real gate input, not a hard-coded string
     quarantine = screen_asset(asset, cfg)

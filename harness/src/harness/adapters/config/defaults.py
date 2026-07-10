@@ -113,9 +113,9 @@ TRUST_ESCALATION = {
     "low":       ["H1.2", "H1.5", "H1.4", "H2.2"],
     "untrusted": ["H1.1", "H1.2", "H1.3", "H1.4", "H1.5", "H2.1", "H2.2", "H2.3", "H2.4"],
 }
-GATE_BY_TRUST = {                                    # tighten-only: stricter fail-severity for low trust
-    "untrusted": {"fail_on_severity": "medium"},
-    "low":       {"fail_on_severity": "high"},
+GATE_BY_TRUST = {                                    # tighten-only: lower trust -> stricter gate
+    "untrusted": {"fail_on_severity": "medium", "quorum_n": 5},   # lower fail-severity + MORE judges
+    "low":       {"fail_on_severity": "high", "quorum_n": 5},
 }
 # Known-vulnerability criteria -> the harness(es) that test them (OWASP-LLM 2025 + MITRE ATLAS).
 CRITERIA = {
