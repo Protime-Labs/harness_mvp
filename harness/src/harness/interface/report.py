@@ -39,6 +39,9 @@ def render_report(bundle: Dict[str, Any], specs: Dict[str, Any]) -> str:
               f"- P={jc['precision']} R={jc['recall']} A={jc['accuracy']} "
               f"eligible={jc['gate_eligible']} · n={jc['n']} · basis: {jc['basis']}"]
 
+    if bundle.get("plan"):
+        L += ["", "## Selection plan (why each harness is required)",
+              *[f"- {p['harness']} -> {p.get('reason') or 'selected'}" for p in bundle["plan"]]]
     if bundle["skipped"]:
         L += ["", "## Skipped (coverage honesty)",
               *[f"- {s['harness']} -> {s['reason']}" for s in bundle["skipped"]]]

@@ -60,6 +60,26 @@ def _cost_governed(cfg: dict) -> bool:
         return False
 
 
+def _declaration_mismatch(use_case: dict, findings) -> bool:
+    """F7 (minimal hook) — declared vs observed reconciliation. A sensitive-data finding
+    (data_leakage / sensitive_disclosure) in a use case that declared NO sensitive data class is a
+    contradiction: the intake under-stated the asset's exposure, so the risk scoping is suspect and
+    the gate routes to manual_review.
+
+    DESIGN NOTE: the full treatment is a two-pass re-selection — re-run W1/W2 with the observed
+    attributes merged into the declared ones and fail closed if coverage widened. That is out of
+    scope here; this is the deterministic gate hook that surfaces the contradiction for a human.
+    """
+    declared = {str(d).upper() for d in (use_case.get("data_classes") or [])}
+    if declared & {"PII", "CPNI", "PHI", "PCI"}:
+        return False
+    for f in findings:
+        cat = getattr(f, "category", "") or ""
+        if cat.startswith("data_leakage") or "sensitive_disclosure" in cat:
+            return True
+    return False
+
+
 def run_assurance(
     *,
     use_case: dict,
@@ -79,9 +99,10 @@ def run_assurance(
     # W? quarantine (security front door) — a real gate input, not a hard-coded string
     quarantine = screen_asset(asset, cfg)
 
-    # W1 contextualize -> W2 select
+    # W1 contextualize -> W2 select (each plan entry carries WHY it was required, F8)
     ctx = contextualize(use_case, policy)
-    plan, skipped = select(ctx["required_harnesses"], registry_map)
+    plan_reasons = {r["harness"]: r["reason"] for r in ctx.get("plan_reasons", [])}
+    plan, skipped = select(ctx["required_harnesses"], registry_map, reasons=plan_reasons)
     # The selected plan is authoritative: run the plan's attack harnesses (governance harnesses are
     # verified by H5.1, not executed as attacks), NOT cfg["PHASE1_ATTACK"] directly.
     attack_ids = [p["harness"] for p in plan if not p.get("governance")]
@@ -90,7 +111,8 @@ def run_assurance(
     # (fail-closed, and no prompts/billing against a quarantined asset). The gate blocks on the
     # quarantine decision (rule 1); the redacted scanner findings live in the bundle's quarantine object.
     if quarantine["decision"] == "block":
-        gate = gate_decision("block", [], [], coverage_complete({}, attack_ids, skipped))
+        gate = gate_decision("block", [], [], coverage_complete({}, attack_ids, skipped),
+                             policy_hash=policy.get("policy_hash", ""))
         gov = run_governance_finding_lifecycle([], [], store)
         readiness = assess_enterprise_readiness(
             policy, store=store, detectors=detectors,
@@ -111,6 +133,7 @@ def run_assurance(
             "findings": [], "evidence_root": store.root,
             "_findings": [], "_verdicts": [], "_manifest": [],
             "_turns": [], "_cost_status": {"governed": _cost_governed(cfg), "known": True},
+            "_context_status": {"unknown_attributes": [], "declaration_mismatch": False},
         }
 
     # W3 run each attack harness (driver honors the run contract; judge quorum inside)
@@ -140,19 +163,27 @@ def run_assurance(
     # budget unassured -> the gate routes to manual_review (never a silent over-budget approve).
     cost_status = {"governed": _cost_governed(cfg),
                    "known": all(r["metrics"].get("cost_known", True) for r in results.values())}
+    # Context integrity: unrecognized risk attributes (F1) + declared-vs-observed mismatch (F7).
+    context_status = {
+        "unknown_attributes": ctx.get("unknown_attributes", []),
+        "declaration_mismatch": _declaration_mismatch(use_case, all_findings),
+    }
 
     # W8 gate — the single deterministic decision (control plane, no LLM). Coverage fails closed when
     # a required harness was skipped (unimplemented/unregistered) or did not complete (A8).
     required_ran = coverage_complete(results, attack_ids, skipped)
+    pol_hash = policy.get("policy_hash", "")
     gate = gate_decision(quarantine["decision"], list(results.values()), all_findings, required_ran,
-                         evaluator_status=judge_cal, cost_status=cost_status)
+                         evaluator_status=judge_cal, cost_status=cost_status,
+                         context_status=context_status, policy_hash=pol_hash)
 
     # Mode-A replay (C4) — reproduce findings + gate from evidence alone
     harness_detectors = {hid: specs[hid].detectors for hid in attack_ids}
     orig = sorted((f.id, f.severity, f.category) for f in all_findings)
     replay_findings, replay_gate = replay_mode_a(
         all_manifest, all_verdicts, store, detectors, harness_detectors, evaluator_status=judge_cal,
-        fail_on_severity=cfg["FAIL_ON_SEVERITY"], cost_status=cost_status)
+        fail_on_severity=cfg["FAIL_ON_SEVERITY"], cost_status=cost_status,
+        context_status=context_status, policy_hash=pol_hash)
     replay_ok = (orig == replay_findings) and (gate.decision == replay_gate.decision)
 
     # W9 remediation (advisory)
@@ -196,4 +227,5 @@ def run_assurance(
         "_manifest": all_manifest,
         "_turns": all_turns,
         "_cost_status": cost_status,
+        "_context_status": context_status,
     }

@@ -10,7 +10,12 @@ from __future__ import annotations
 from typing import Dict, List, Tuple
 
 
-def select(required: List[str], registry: Dict[str, dict]) -> Tuple[List[dict], List[dict]]:
+def select(required: List[str], registry: Dict[str, dict],
+           reasons: Dict[str, str] = None) -> Tuple[List[dict], List[dict]]:
+    """Turn the required set into a run plan + skip rationale. `reasons` maps harness id -> WHY it
+    was required ("tier:high pack" / "clause: data_classes=PHI"), so a planned harness is as
+    explainable as a skipped one (F8/R5)."""
+    reasons = reasons or {}
     plan, skipped = [], []
     for h in required:
         d = registry.get(h)
@@ -19,7 +24,8 @@ def select(required: List[str], registry: Dict[str, dict]) -> Tuple[List[dict], 
         elif not d.get("implemented"):
             skipped.append({"harness": h, "reason": "Phase 2/3 - not in MVP core"})
         else:
-            plan.append({"harness": h, "governance": d.get("governance", False)})
+            plan.append({"harness": h, "governance": d.get("governance", False),
+                         "reason": reasons.get(h, "")})
     return plan, skipped
 
 

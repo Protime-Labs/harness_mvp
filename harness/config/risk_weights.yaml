@@ -32,3 +32,25 @@ cutoffs:           # score thresholds for the tier
   medium: 30
 
 foundational_pack: ["H2.1", "H1.2", "H1.3", "H2.3", "H5.1"]
+
+# Per-risk-tier packs (F2): the computed tier selects the pack. MUST be nested
+# (low ⊆ medium ⊆ high) so adding a risk attribute never shrinks the required set (A11).
+# Omit this block entirely to fall back to `foundational_pack` for every tier.
+packs:
+  low:    ["H2.1", "H5.1"]
+  medium: ["H2.1", "H1.2", "H2.3", "H5.1"]
+  high:   ["H2.1", "H1.2", "H1.3", "H2.3", "H5.1"]
+
+# Mandatory requirement clauses (F3): union'd onto the tier pack regardless of the score,
+# so a high-signal attribute can never be diluted out of a required harness.
+require_when:
+  - when: { attr: data_classes, contains: PHI }
+    require: ["H1.3"]
+  - when: { attr: data_classes, contains: PII }
+    require: ["H2.3"]
+  - when: { attr: data_classes, contains: CPNI }
+    require: ["H2.3"]
+  - when: { attr: data_classes, contains: PCI }
+    require: ["H2.3"]
+  - when: { attr: write_tools, equals: true }
+    require: ["H2.1"]

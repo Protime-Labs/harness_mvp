@@ -17,4 +17,5 @@ def contextualize(use_case: dict, policy: Dict) -> dict:
         name=use_case["name"], data_classes=use_case["data_classes"], exposure=use_case["exposure"],
         write_tools=use_case["write_tools"], users=use_case["users"], criticality=use_case["criticality"],
     )
-    return _contextualize(uc, policy["risk_weights"], policy["risk_cutoffs"], policy["foundational_pack"])
+    return _contextualize(uc, policy["risk_weights"], policy["risk_cutoffs"], policy["foundational_pack"],
+                          packs=policy.get("packs"), require_when=policy.get("require_when"))

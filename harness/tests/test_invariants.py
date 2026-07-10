@@ -16,7 +16,7 @@ def test_all_invariants_pass():
         specs=ctx["specs"], registry_map=ctx["registry_map"], system_prompt=ctx["system_prompt"])
     results = run_invariant_suite(
         bundle, cfg=ctx["cfg"], specs=ctx["specs"], make_store=ctx["make_store"],
-        make_adapter=ctx["make_adapter"], make_driver=ctx["make_driver"])
+        make_adapter=ctx["make_adapter"], make_driver=ctx["make_driver"], policy=ctx["policy"])
     failures = [name for name, ok in results if not ok]
     assert not failures, f"invariant failures: {failures}"
     assert len(results) >= 10

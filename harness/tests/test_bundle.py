@@ -43,6 +43,15 @@ def test_validate_accepts_replay_manifest_path(tmp_path):
     assert rep["ok"] is True
 
 
+def test_policy_drift_flagged_on_replay(tmp_path):
+    ctx, b = _run()
+    out = write_run_bundle(b, ctx["store"], ctx["policy"], ctx["specs"], str(tmp_path / "RUN-drift"))
+    same = ctx["policy"]["policy_hash"]
+    assert validate_run_bundle(out, current_policy_hash=same)["policy_drift"] is False
+    drifted = validate_run_bundle(out, current_policy_hash="sha256:deadbeef")
+    assert drifted["policy_drift"] is True and drifted["ok"] is False
+
+
 def test_tampered_evidence_fails_validation(tmp_path):
     ctx, b = _run()
     out = write_run_bundle(b, ctx["store"], ctx["policy"], ctx["specs"], str(tmp_path / "RUN-tamper"))

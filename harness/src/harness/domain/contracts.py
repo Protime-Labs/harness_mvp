@@ -133,6 +133,7 @@ class GateDecision:
     matched_rule: str
     rationale: str
     policy_version: str = GATE_SCHEMA
+    policy_hash: str = ""  # F4: sha256 of the policy content in force (drift detection)
 
 
 def to_dict(obj: Any) -> Any:

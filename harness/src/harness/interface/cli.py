@@ -204,7 +204,7 @@ def cmd_verify(args) -> int:
     print("-" * 52)
     results = run_invariant_suite(
         bundle, cfg=ctx["cfg"], specs=ctx["specs"], make_store=ctx["make_store"],
-        make_adapter=ctx["make_adapter"], make_driver=ctx["make_driver"],
+        make_adapter=ctx["make_adapter"], make_driver=ctx["make_driver"], policy=ctx["policy"],
     )
     ok_all = True
     for name, ok in results:

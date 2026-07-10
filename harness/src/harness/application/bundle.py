@@ -77,6 +77,8 @@ def write_run_bundle(bundle: dict, store: Any, policy: dict, specs: dict, out_di
         "quarantine_decision": (bundle.get("quarantine") or {}).get("decision", "allow"),
         "evaluator_status": bundle.get("judge_calibration"),
         "cost_status": bundle.get("_cost_status"),
+        "context_status": bundle.get("_context_status"),
+        "policy_hash": (bundle.get("gate") or {}).get("policy_hash", ""),
         "use_presidio": bool(cfg.get("USE_PRESIDIO")), "use_detoxify": bool(cfg.get("USE_DETOXIFY")),
         "candidates": candidates, "verdicts": bundle.get("_verdicts", []),
         "expected_gate": bundle.get("gate"),
@@ -120,10 +122,14 @@ class _BundleReader:
             return f.read()
 
 
-def validate_run_bundle(path: str) -> dict:
+def validate_run_bundle(path: str, current_policy_hash: str | None = None) -> dict:
     """Replay the gate from a persisted bundle (no live objects, no model calls). `path` is the
     bundle directory or its replay_manifest.json. Returns {ok, expected_gate, replayed_gate, ...};
-    a tampered evidence file trips the chain-of-custody hash check and yields ok=False."""
+    a tampered evidence file trips the chain-of-custody hash check and yields ok=False.
+
+    F4: pass `current_policy_hash` (the policy in force now) to detect POLICY DRIFT — if it differs
+    from the hash the bundle was decided under, the run is no longer reproducible under today's
+    policy and `ok` is False."""
     from ..adapters.detectors import build_detectors  # lazy: keep the module-level layer graph clean
 
     bundle_dir = os.path.dirname(path) if path.endswith(".json") else path
@@ -142,18 +148,22 @@ def validate_run_bundle(path: str) -> dict:
         harness_detectors[c["harness"]] = c["detectors"]
 
     expected = (rm.get("expected_gate") or {}).get("decision")
+    stored_hash = rm.get("policy_hash", "")
+    policy_drift = current_policy_hash is not None and current_policy_hash != stored_hash
     tamper = None
     try:
         _findings, gate = replay_mode_a(
             manifest, rm.get("verdicts", []), _BundleReader(), detectors, harness_detectors,
             evaluator_status=rm.get("evaluator_status"), fail_on_severity=rm.get("fail_on_severity", "high"),
-            cost_status=rm.get("cost_status"), quarantine=rm.get("quarantine_decision", "allow"))
+            cost_status=rm.get("cost_status"), quarantine=rm.get("quarantine_decision", "allow"),
+            context_status=rm.get("context_status"), policy_hash=stored_hash)
         replayed = gate.decision
     except AssertionError as e:
         tamper, replayed = str(e), None
 
     return {
-        "ok": tamper is None and replayed == expected,
+        "ok": tamper is None and replayed == expected and not policy_drift,
         "run_id": rm.get("run_id"), "candidates": len(rm.get("candidates", [])),
         "expected_gate": expected, "replayed_gate": replayed, "tamper": tamper,
+        "policy_hash": stored_hash, "policy_drift": policy_drift,
     }

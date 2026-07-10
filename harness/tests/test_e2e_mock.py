@@ -35,6 +35,13 @@ def test_replay_reproduces_run():
     assert b["replay"]["ok"] is True
 
 
+def test_plan_entries_carry_selection_reason():
+    _, b = _run("vulnerable")
+    assert b["plan"] and all(p.get("reason") for p in b["plan"])   # every planned harness is explained
+    reasons = {p["harness"]: p["reason"] for p in b["plan"]}
+    assert "pack" in reasons["H2.1"] or "clause" in reasons["H2.1"]
+
+
 def test_governance_complete():
     _, b = _run("vulnerable")
     m = b["governance"]["metrics"]
@@ -65,6 +72,20 @@ def test_foundational_pack_unchanged():
     assert len(b["findings"]) == 8
 
 
+def test_phi_use_case_selects_privacy_harness_via_clause():
+    ctx = factory.build_context()  # default config carries per-tier packs + require_when
+    phi_uc = {"name": "phi-svc", "data_classes": ["PHI"], "exposure": "internal",
+              "write_tools": False, "users": ["internal"], "criticality": "tier3"}
+    b = run_assurance(
+        use_case=phi_uc, asset=ASSET, policy=ctx["policy"], driver=ctx["driver"], adapter=ctx["adapter"],
+        store=ctx["store"], detectors=ctx["detectors"], specs=ctx["specs"],
+        registry_map=ctx["registry_map"], system_prompt=ctx["system_prompt"])
+    assert b["context"]["tier"] != "high"                      # low-ish score ...
+    assert "H1.3" in b["context"]["required_harnesses"]        # ... yet the PHI clause forces H1.3 in
+    reasons = {r["harness"]: r["reason"] for r in b["context"]["plan_reasons"]}
+    assert reasons["H1.3"].startswith("clause:")
+
+
 def test_quarantine_secret_short_circuits_before_execution():
     ctx = factory.build_context()
     asset = {"asset_id": "AGT-SECRET", "config": {"aws_key": "AKIAIOSFODNN7EXAMPLE"}}
@@ -78,6 +99,16 @@ def test_quarantine_secret_short_circuits_before_execution():
     assert b["quarantine"]["decision"] == "block" and len(b["quarantine"]["findings"]) == 1
     assert b["findings"] == []                             # scanner findings live in the quarantine object
     assert b["replay"]["ok"] is True
+
+
+def test_declaration_mismatch_detects_undeclared_leak():
+    from harness.application.orchestrator import _declaration_mismatch
+    from harness.domain.contracts import Finding
+    leak = Finding(id="F", source="harness", severity="high", category="data_leakage.pii", title="t",
+                   description="d", blocking=True, policy_rule="P", evidence_uri="", recommendation="")
+    assert _declaration_mismatch({"data_classes": ["public"]}, [leak]) is True   # undeclared exposure
+    assert _declaration_mismatch({"data_classes": ["PII"]}, [leak]) is False     # declared -> consistent
+    assert _declaration_mismatch({"data_classes": ["public"]}, []) is False      # nothing observed
 
 
 def test_determinism_same_findings_twice():

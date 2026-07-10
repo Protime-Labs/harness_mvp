@@ -23,6 +23,8 @@ def gate_decision(
     required_ran: bool,
     evaluator_status: dict | None = None,
     cost_status: dict | None = None,
+    context_status: dict | None = None,
+    policy_hash: str = "",
 ) -> GateDecision:
     """Aggregate every harness finding into one decision. First matching rule wins.
 
@@ -39,7 +41,8 @@ def gate_decision(
     """
 
     def out(dec: str, rule: str, why: str) -> GateDecision:
-        return GateDecision(decision=dec, matched_rule=rule, rationale=why, policy_version=GATE_SCHEMA)
+        return GateDecision(decision=dec, matched_rule=rule, rationale=why,
+                            policy_version=GATE_SCHEMA, policy_hash=policy_hash)
 
     # 1 — quarantine hard block (security front door, when present)
     if quarantine == "block":
@@ -48,6 +51,11 @@ def gate_decision(
     if not required_ran:
         return out("block", "2.required_harness_not_run",
                    "A required harness did not run/complete (A8 fail-closed).")
+    # 2b — an unrecognized risk attribute means the score/tier/selection cannot be trusted; the run's
+    #      very scoping is suspect, so route to human review before evaluating findings (F1).
+    if context_status and context_status.get("unknown_attributes"):
+        return out("manual_review", "2b.unknown_risk_attributes",
+                   "Unrecognized risk attribute(s); risk scoring/selection cannot be trusted.")
     # 3 — a blocking harness reported failed status
     if any(r.get("status") == "failed" for r in harness_results):
         return out("block", "3.blocking_harness_failed", "A blocking harness failed.")
@@ -66,6 +74,13 @@ def gate_decision(
     if any(getattr(f, "blocking", False) for f in findings):
         return out("block", "6.blocking_finding",
                    "Finding at or above the configured fail-severity threshold.")
+    # 6a — declared-vs-observed contradiction: runtime evidence contradicts the declared use-case
+    #      attributes (e.g. a data-leakage finding in a use case that declared no sensitive class).
+    #      The scoping under-stated the asset's exposure -> human review. Ordered AFTER block rules,
+    #      before 6b, so a real block still wins (F7).
+    if context_status and context_status.get("declaration_mismatch"):
+        return out("manual_review", "6a.declaration_mismatch",
+                   "Observed evidence contradicts the declared use-case attributes.")
     # 6b — cost could not be determined on a cost-governed run: the budget is unassured, so we
     #      cannot silently approve (ordered AFTER every block rule — a real block always wins).
     if cost_status and cost_status.get("governed") and cost_status.get("known") is False:

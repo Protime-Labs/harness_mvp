@@ -83,6 +83,25 @@ def test_cost_known_or_ungoverned_has_no_gate_effect():
                          cost_status={"governed": False, "known": False}).decision == "approve"
 
 
+def test_unknown_risk_attributes_route_manual_review():
+    cs = {"unknown_attributes": ["data_class:biometrik"]}
+    d = gate_decision("allow", [], [], True, context_status=cs)
+    assert d.decision == "manual_review" and d.matched_rule == "2b.unknown_risk_attributes"
+    # no unknowns -> no effect
+    assert gate_decision("allow", [], [], True, context_status={"unknown_attributes": []}).decision == "approve"
+    # coverage failure still outranks it (fail closed first)
+    assert gate_decision("allow", [], [], False, context_status=cs).decision == "block"
+
+
+def test_declaration_mismatch_routes_manual_review():
+    cs = {"declaration_mismatch": True}
+    d = gate_decision("allow", [], [], True, context_status=cs)
+    assert d.decision == "manual_review" and d.matched_rule == "6a.declaration_mismatch"
+    # a real block still wins (ordered after the block rules)
+    assert gate_decision("allow", [], [_f("critical", basis="detector(real-content)")], True,
+                         context_status=cs).decision == "block"
+
+
 def test_no_llm_tokens_in_gate():
     banned = {"invoke", "completion", "judge", "aggregate"}
     assert banned.isdisjoint(set(gate_decision.__code__.co_names))

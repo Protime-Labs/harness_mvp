@@ -36,6 +36,7 @@ DEFAULT_CONFIG = {
     "USE_DETOXIFY": False,                         # True adds the Detoxify toxicity detector (H1.3 floor)
     "DRIVER": "builtin",                           # B3 driver: "builtin" | "inspect" (Inspect AI eval)
     "REDACT": True,
+    "STRICT_CONFIG": None,                          # F5: None -> strict unless PROVIDER_MODE == "mock"
 }
 
 # --- risk model (BF-10 — PROVISIONAL, governance/risk owner tunes) ----------------------
@@ -54,6 +55,23 @@ ADVANCED_PACK = ["H2.1", "H1.2", "H1.3", "H2.3",
                  "H1.1", "H1.4", "H2.2", "H2.4", "H1.5", "H5.1"]
 PACKS = {"foundational": FOUNDATIONAL_PACK, "advanced": ADVANCED_PACK, "all": ADVANCED_PACK}
 GOVERNANCE_HARNESSES = {"H5.1"}
+
+# --- per-risk-tier packs (F2) — the tier now drives selection ---------------------------
+# MUST be nested (low ⊆ medium ⊆ high) so escalating an attribute never shrinks the set (A11).
+PACKS_BY_TIER = {
+    "low":    ["H2.1", "H5.1"],
+    "medium": ["H2.1", "H1.2", "H2.3", "H5.1"],
+    "high":   FOUNDATIONAL_PACK,           # ["H2.1","H1.2","H1.3","H2.3","H5.1"]
+}
+# --- mandatory require_when clauses (F3) — union'd onto the tier pack regardless of score -------
+# A high-signal attribute forces its harness in even when the weighted sum lands in a low tier.
+REQUIRE_WHEN = [
+    {"when": {"attr": "data_classes", "contains": "PHI"},  "require": ["H1.3"]},
+    {"when": {"attr": "data_classes", "contains": "PII"},  "require": ["H2.3"]},
+    {"when": {"attr": "data_classes", "contains": "CPNI"}, "require": ["H2.3"]},
+    {"when": {"attr": "data_classes", "contains": "PCI"},  "require": ["H2.3"]},
+    {"when": {"attr": "write_tools",  "equals": True},     "require": ["H2.1"]},
+]
 
 # --- registry: which harnesses are implemented in this MVP core (BF-19) -----------------
 REGISTRY = {

@@ -370,6 +370,8 @@ function render(bundle){
   if(jc){cSec.appendChild(el("div","foot-note",
     "judge calibration (verdict-level, target-independent): P="+jc.precision+" R="+jc.recall+" A="+jc.accuracy+
     " · eligible="+jc.gate_eligible+" · n="+jc.n+" · "+jc.basis));}
+  const plan=bundle.plan||[];
+  if(plan.length){cSec.appendChild(el("div","foot-note","selection: "+plan.map(p=>p.harness+" ("+(p.reason||"selected")+")").join(" · ")));}
   const skipped=bundle.skipped||[];
   if(skipped.length){cSec.appendChild(el("div","foot-note","skipped: "+skipped.map(s=>s.harness+" ("+s.reason+")").join(" · ")));}
   app.appendChild(cSec);

@@ -12,8 +12,9 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any, Callable, Dict, List, Tuple
 
-from ..domain.contracts import GATE_VOCAB, Finding
+from ..domain.contracts import GATE_VOCAB, Finding, UseCase
 from ..domain.gate import gate_decision
+from ..domain.risk import contextualize as _ctx
 
 
 def run_invariant_suite(
@@ -24,6 +25,7 @@ def run_invariant_suite(
     make_store: Callable[[], Any],
     make_adapter: Callable[..., Any],
     make_driver: Callable[..., Any],
+    policy: dict | None = None,
 ) -> List[Tuple[str, bool]]:
     findings: List[Finding] = bundle["_findings"]
     verdicts: List[dict] = bundle["_verdicts"]
@@ -74,6 +76,23 @@ def run_invariant_suite(
     # pack composition — every required (implemented) harness made it into the plan
     planned = set(p["harness"] for p in plan)
     T.append(("Foundational pack selected", planned == set(bundle["context"]["required_harnesses"])))
+
+    # A11 — monotonic selection: escalating any single risk attribute never SHRINKS the required set.
+    if policy is not None:
+        def _req(uc):
+            r = _ctx(uc, policy["risk_weights"], policy["risk_cutoffs"], policy["foundational_pack"],
+                     packs=policy.get("packs"), require_when=policy.get("require_when"))
+            return set(r["required_harnesses"])
+        base = UseCase("base", ["public"], "internal", False, ["internal"], "tier3")
+        base_req = _req(base)
+        escalated = [
+            UseCase("+dataclass", ["public", "PHI"], "internal", False, ["internal"], "tier3"),
+            UseCase("+exposure", ["public"], "public", False, ["internal"], "tier3"),
+            UseCase("+writetools", ["public"], "internal", True, ["internal"], "tier3"),
+            UseCase("+users", ["public"], "internal", False, ["external"], "tier3"),
+            UseCase("+criticality", ["public"], "internal", False, ["internal"], "tier1"),
+        ]
+        T.append(("A11 monotonic selection", all(base_req <= _req(e) for e in escalated)))
 
     # DoD — the vulnerable baseline blocks
     T.append(("DoD block-on-critical", gate["decision"] == "block"))
