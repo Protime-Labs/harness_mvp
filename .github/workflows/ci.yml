@@ -1,8 +1,8 @@
 name: harness-ci
 
 # Runs the platform's own acceptance gate on every push/PR: the unit tests plus the
-# invariant suite (the 10 machine-checked guarantees). Core is stdlib-only, so CI is
-# hermetic and fast — no provider keys, no network, no heavy extras.
+# invariant suite (the 11 machine-checked guarantees incl. A11 monotonic selection). Core is
+# stdlib-only, so CI is hermetic and fast — no provider keys, no network, no heavy extras.
 
 on:
   push:
