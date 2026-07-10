@@ -37,7 +37,7 @@ INVARIANTS = {
     "A9": Invariant("A9", "A judge quorum is gate-eligible only if it meets calibration thresholds "
                           "(precision/recall/accuracy).", "architecture_v3 A9 / C1"),
     "R9": Invariant("R9", "The gate emits exactly one of {approve, warn, block, manual_review}.", "design R9"),
-    "A11": Invariant("A11", "Monotonic selection: adding/escalating a risk attribute never shrinks "
-                            "the required harness set (nested tier packs ∪ require_when clauses).",
-                            "control-plane triage F3"),
+    "A11": Invariant("A11", "Monotonic selection: escalating a risk attribute OR lowering inherent "
+                            "trust never shrinks the required harness set (tier packs ∪ require_when ∪ "
+                            "trust escalation).", "control-plane triage F3 + Req 2 trust axis"),
 }

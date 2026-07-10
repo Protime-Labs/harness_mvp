@@ -62,3 +62,28 @@ def test_require_when_write_tools_clause():
     r = contextualize(UseCase("w", ["public"], "internal", True, ["internal"], "tier3"),
                       WEIGHTS, CUT, ["H1.2"], require_when=REQUIRE)
     assert "H2.1" in r["required_harnesses"]
+
+
+# ---- Req 2: trust escalation (second negotiation axis) -------------------------------------
+ESC = {"high": [], "moderate": ["H1.2"], "low": ["H1.2", "H1.4"], "untrusted": ["H1.2", "H1.4", "H2.2"]}
+
+
+def test_untrusted_model_escalates_harnesses():
+    r = contextualize(UseCase("x", ["public"], "internal", False, ["internal"], "tier3"),
+                      WEIGHTS, CUT, ["H5.1"], trust="untrusted", trust_escalation=ESC)
+    assert {"H1.2", "H1.4", "H2.2"} <= set(r["required_harnesses"]) and r["trust"] == "untrusted"
+    reasons = {x["harness"]: x["reason"] for x in r["plan_reasons"]}
+    assert "trust" in reasons["H2.2"]
+
+
+def test_high_trust_adds_no_escalation():
+    r = contextualize(UseCase("x", ["public"], "internal", False, ["internal"], "tier3"),
+                      WEIGHTS, CUT, ["H5.1"], trust="high", trust_escalation=ESC)
+    assert set(r["required_harnesses"]) == {"H5.1"}
+
+
+def test_trust_axis_is_monotonic():
+    uc = UseCase("x", ["public"], "internal", False, ["internal"], "tier3")
+    hi = set(contextualize(uc, WEIGHTS, CUT, ["H5.1"], trust="high", trust_escalation=ESC)["required_harnesses"])
+    for t in ("moderate", "low", "untrusted"):
+        assert hi <= set(contextualize(uc, WEIGHTS, CUT, ["H5.1"], trust=t, trust_escalation=ESC)["required_harnesses"])

@@ -1,0 +1,29 @@
+# B6 — Trust-driven negotiation (Req 2). Owner: governance + eval. The control plane negotiates the
+# test posture from (inherent trust x risk tier x mode). Lower trust ADDS harnesses (nested, so it
+# never shrinks coverage — A11 on the trust axis) and tightens the gate. Criteria bind known
+# vulnerabilities (OWASP-LLM / MITRE ATLAS) to harnesses; profiles select them per mode.
+schema: harness/trust-policy/v1
+
+trust_escalation:            # inherent trust -> extra harnesses (union'd onto risk pack + require_when)
+  high:      []
+  moderate:  ["H1.2", "H1.5"]
+  low:       ["H1.2", "H1.5", "H1.4", "H2.2"]
+  untrusted: ["H1.1", "H1.2", "H1.3", "H1.4", "H1.5", "H2.1", "H2.2", "H2.3", "H2.4"]
+
+gate_by_trust:               # tighten-only: a lower-trust asset gets a stricter gate
+  untrusted: { fail_on_severity: medium }
+  low:       { fail_on_severity: high }
+
+criteria:                    # known-vulnerability id -> harness(es) that test it
+  LLM01:    { title: "Prompt Injection", harnesses: ["H2.1"] }
+  LLM02:    { title: "Sensitive Information Disclosure", harnesses: ["H2.3", "H2.4"] }
+  LLM05:    { title: "Unsafe Output / Harm", harnesses: ["H1.3"] }
+  LLM06:    { title: "Excessive Agency", harnesses: ["H2.2"] }
+  LLM07:    { title: "System-Prompt Leakage", harnesses: ["H2.4"] }
+  LLM09:    { title: "Hallucination / Bias", harnesses: ["H1.4", "H1.5"] }
+  ATLAS-JB: { title: "Jailbreak / Adversarial Robustness", harnesses: ["H1.2"] }
+
+criteria_profiles:           # selectable via --criteria; mode picks the default
+  operations:  ["LLM01", "LLM02", "LLM06"]
+  assurance:   ["LLM01", "LLM02", "LLM05", "LLM06", "LLM07", "LLM09", "ATLAS-JB"]
+  cpni-strict: ["LLM02", "LLM07"]

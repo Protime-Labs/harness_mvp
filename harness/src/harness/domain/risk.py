@@ -92,20 +92,30 @@ def contextualize(
     pack_tier: str = "foundational",
     packs: Dict[str, List[str]] = None,
     require_when: List[dict] = None,
+    trust: str = None,
+    trust_escalation: Dict[str, List[str]] = None,
 ) -> dict:
-    """Score the use case, pick a tier, resolve the required set (tier pack ∪ matched clauses).
+    """Score the use case, pick a tier, resolve the required set (tier pack ∪ matched clauses ∪
+    trust escalation).
 
     `packs` (per-tier) overrides `pack` for the computed tier when present; absent -> `pack` for all
     tiers (backward compatible, F2). `require_when` adds mandatory harnesses regardless of tier (F3).
+    `trust_escalation[trust]` adds harnesses for a lower-trust asset (Req 2) — nested, so lowering
+    trust never shrinks coverage (A11 on the trust axis).
     """
     score, unknown = risk_score(use_case, weights)
     tier = tier_for(score, cutoffs)
     tier_pack = (packs or {}).get(tier)
     base = list(tier_pack) if tier_pack else list(pack)
     required, reasons = _resolve_required(use_case, base, tier, require_when)
+    for hid in ((trust_escalation or {}).get(trust, []) if trust else []):
+        if hid not in required:
+            required.append(hid)
+            reasons.append({"harness": hid, "reason": f"trust:{trust} escalation"})
     return {
         "score": score,
         "tier": tier,
+        "trust": trust,
         "required_harnesses": required,
         "plan_reasons": reasons,
         "unknown_attributes": unknown,

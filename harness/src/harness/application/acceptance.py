@@ -77,11 +77,13 @@ def run_invariant_suite(
     planned = set(p["harness"] for p in plan)
     T.append(("Foundational pack selected", planned == set(bundle["context"]["required_harnesses"])))
 
-    # A11 — monotonic selection: escalating any single risk attribute never SHRINKS the required set.
+    # A11 — monotonic selection: escalating a risk attribute OR lowering inherent trust never SHRINKS
+    # the required harness set (both negotiation axes are monotonic).
     if policy is not None:
-        def _req(uc):
+        def _req(uc, trust=None):
             r = _ctx(uc, policy["risk_weights"], policy["risk_cutoffs"], policy["foundational_pack"],
-                     packs=policy.get("packs"), require_when=policy.get("require_when"))
+                     packs=policy.get("packs"), require_when=policy.get("require_when"),
+                     trust=trust, trust_escalation=policy.get("trust_escalation"))
             return set(r["required_harnesses"])
         base = UseCase("base", ["public"], "internal", False, ["internal"], "tier3")
         base_req = _req(base)
@@ -92,7 +94,10 @@ def run_invariant_suite(
             UseCase("+users", ["public"], "internal", False, ["external"], "tier3"),
             UseCase("+criticality", ["public"], "internal", False, ["internal"], "tier1"),
         ]
-        T.append(("A11 monotonic selection", all(base_req <= _req(e) for e in escalated)))
+        risk_mono = all(base_req <= _req(e) for e in escalated)
+        hi = _req(base, trust="high")
+        trust_mono = all(hi <= _req(base, trust=t) for t in ("moderate", "low", "untrusted"))
+        T.append(("A11 monotonic selection", risk_mono and trust_mono))
 
     # DoD — the vulnerable baseline blocks
     T.append(("DoD block-on-critical", gate["decision"] == "block"))

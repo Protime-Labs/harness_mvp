@@ -49,12 +49,13 @@ def _load_yaml(path: str) -> dict:
 
 # F5 — governance YAML must not degrade silently: unknown top-level keys are a misconfiguration.
 _CONFIG_YAMLS = ("risk_weights.yaml", "quorum.yaml", "budgets.yaml", "golden_controls.yaml",
-                 "model_pricing.yaml", "models.yaml")
+                 "model_pricing.yaml", "models.yaml", "trust_policy.yaml")
 _ALLOWED_KEYS = {
     "risk_weights.yaml": {"weights", "cutoffs", "foundational_pack", "packs", "require_when"},
     "golden_controls.yaml": {"schema", "status", "external_dependency", "note", "domains", "controls", "catalogue"},
     "model_pricing.yaml": {"schema", "models"},
     "models.yaml": {"schema", "models"},
+    "trust_policy.yaml": {"schema", "trust_escalation", "gate_by_trust", "criteria", "criteria_profiles"},
     # budgets.yaml + quorum.yaml merge into CONFIG -> validated against DEFAULT_CONFIG keys below.
 }
 
@@ -128,6 +129,10 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
     packs_by_tier = copy.deepcopy(defaults.PACKS_BY_TIER)   # per-risk-tier packs (F2)
     require_when = copy.deepcopy(defaults.REQUIRE_WHEN)      # mandatory clauses (F3)
     models_registry = list(defaults.MODEL_REGISTRY)         # selectable models (Req 1)
+    trust_escalation = copy.deepcopy(defaults.TRUST_ESCALATION)   # Req 2 negotiation
+    gate_by_trust = copy.deepcopy(defaults.GATE_BY_TRUST)
+    criteria = copy.deepcopy(defaults.CRITERIA)
+    criteria_profiles = copy.deepcopy(defaults.CRITERIA_PROFILES)
     golden_controls = {"domains": {}}
 
     # F5 — STRICT_CONFIG (default: true unless mock provider). Decided from the override/default
@@ -159,6 +164,14 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
         _check_keys("models.yaml", y_models, _ALLOWED_KEYS["models.yaml"])
         if y_models and y_models.get("models"):
             models_registry = y_models["models"]; sources.append("models.yaml")
+        y_trust = _load_yaml(os.path.join(cfg_dir, "trust_policy.yaml"))
+        _check_keys("trust_policy.yaml", y_trust, _ALLOWED_KEYS["trust_policy.yaml"])
+        if y_trust:
+            trust_escalation = y_trust.get("trust_escalation", trust_escalation)
+            gate_by_trust = y_trust.get("gate_by_trust", gate_by_trust)
+            criteria = y_trust.get("criteria", criteria)
+            criteria_profiles = y_trust.get("criteria_profiles", criteria_profiles)
+            sources.append("trust_policy.yaml")
         if y_budgets:
             cfg = _deep_merge(cfg, y_budgets); sources.append("budgets.yaml")
         if y_quorum:
@@ -219,6 +232,10 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
         "packs": packs_by_tier,
         "require_when": require_when,
         "models": models_registry,
+        "trust_escalation": trust_escalation,
+        "gate_by_trust": gate_by_trust,
+        "criteria": criteria,
+        "criteria_profiles": criteria_profiles,
         "policy_hash": policy_hash,
         "golden_controls": golden_controls,
         "sources": sources,

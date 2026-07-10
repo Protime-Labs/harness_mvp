@@ -18,4 +18,6 @@ def contextualize(use_case: dict, policy: Dict) -> dict:
         write_tools=use_case["write_tools"], users=use_case["users"], criticality=use_case["criticality"],
     )
     return _contextualize(uc, policy["risk_weights"], policy["risk_cutoffs"], policy["foundational_pack"],
-                          packs=policy.get("packs"), require_when=policy.get("require_when"))
+                          packs=policy.get("packs"), require_when=policy.get("require_when"),
+                          trust=policy["config"].get("INHERENT_TRUST"),
+                          trust_escalation=policy.get("trust_escalation"))

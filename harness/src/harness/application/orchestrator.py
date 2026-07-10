@@ -13,8 +13,9 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any, Callable, Dict, List
 
-from ..domain.contracts import Finding
+from ..domain.contracts import Finding, SEVERITY_ORDER
 from ..domain.gate import gate_decision
+from .scorecard import build_scorecard, resolve_profile
 from .calibration import calibrate
 from .judge_calibration import calibrate_judge
 from .contextualize import contextualize
@@ -94,7 +95,13 @@ def run_assurance(
     system_prompt: str,
     judge_adapter: Any = None,    # independent judge ModelPort (A4/BF-20); None => mock/self
 ) -> Dict[str, Any]:
-    cfg = policy["config"]
+    cfg = dict(policy["config"])
+    # Req 2 — gate-by-trust: a lower-trust asset gets a stricter gate (tighten-only, deterministic).
+    _tr = cfg.get("INHERENT_TRUST")
+    _gbt = (policy.get("gate_by_trust") or {}).get(_tr or "", {})
+    if _gbt.get("fail_on_severity") and \
+            SEVERITY_ORDER.get(_gbt["fail_on_severity"], 99) < SEVERITY_ORDER.get(cfg["FAIL_ON_SEVERITY"], 99):
+        cfg["FAIL_ON_SEVERITY"] = _gbt["fail_on_severity"]
 
     # W? quarantine (security front door) — a real gate input, not a hard-coded string
     quarantine = screen_asset(asset, cfg)
@@ -123,6 +130,10 @@ def run_assurance(
         return {
             "asset": asset, "use_case": use_case,
             "run_config": _build_run_config(cfg, policy.get("scenario_path") or "built-in/config suite"),
+            "scorecard": build_scorecard(
+                resolve_profile(cfg, policy.get("criteria_profiles", {}))[1], policy.get("criteria", {}),
+                [], [], trust=cfg.get("INHERENT_TRUST"), mode=cfg.get("MODE", "assurance"),
+                profile_name=resolve_profile(cfg, policy.get("criteria_profiles", {}))[0]),
             "context": ctx, "plan": plan, "skipped": skipped, "quarantine": quarantine,
             "harness_results": {}, "governance": gov, "gate": asdict(gate),
             "enterprise_readiness": readiness, "mvp_readiness": mvp_readiness, "calibration": {},
@@ -202,10 +213,18 @@ def run_assurance(
         policy, store=store, detectors=detectors,
         driver_name=getattr(driver, "name", None), specs=specs)
 
+    # Req 2 — vulnerability × trust scorecard (a deterministic view of the findings the gate saw)
+    findings_dicts = [asdict(f) for f in all_findings]
+    _profile_name, _profile_ids = resolve_profile(cfg, policy.get("criteria_profiles", {}))
+    scorecard = build_scorecard(_profile_ids, policy.get("criteria", {}), attack_ids, findings_dicts,
+                                trust=cfg.get("INHERENT_TRUST"), mode=cfg.get("MODE", "assurance"),
+                                profile_name=_profile_name)
+
     return {
         "asset": asset,
         "use_case": use_case,
         "run_config": run_config,
+        "scorecard": scorecard,
         "context": ctx,
         "plan": plan,
         "skipped": skipped,
@@ -219,7 +238,7 @@ def run_assurance(
         "judge_calibration": judge_cal,
         "replay": {"ok": replay_ok, "findings": replay_findings, "gate": asdict(replay_gate)},
         "remediation": remediation,
-        "findings": [asdict(f) for f in all_findings],
+        "findings": findings_dicts,
         "evidence_root": store.root,
         # live objects for reporting / the acceptance suite / bundle persistence (not serialized):
         "_findings": all_findings,

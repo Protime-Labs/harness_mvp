@@ -23,6 +23,19 @@ def render_report(bundle: Dict[str, Any], specs: Dict[str, Any]) -> str:
         L.append(f"- **{hid}** {name}: {r['status']}, {r['metrics']['findings']} finding(s), decision `{r['decision']}`")
     L.append(f"- **H5.1** governance: {gov['metrics']['complete']}/{gov['metrics']['checked']} findings lifecycle-complete")
 
+    sc = bundle.get("scorecard")
+    if sc:
+        s = sc["summary"]
+        L += ["", f"## Scorecard — vulnerability × trust (mode: {sc['mode']} · profile: {sc['profile']})",
+              f"**{s['pass']} pass · {s['warn']} warn · {s['fail']} fail · {s['not_tested']} not-tested** · "
+              f"trust declared **{sc.get('declared_trust') or 'n/a'}** / observed "
+              f"**{sc.get('observed_trust') or 'n/a'}**"
+              + ("  ·  (!) TRUST DOWNGRADE -> manual review" if sc.get("trust_downgrade") else "")]
+        _tag = {"pass": "PASS", "warn": "WARN", "fail": "FAIL", "not_tested": "n/a"}
+        for r in sc["rows"]:
+            L.append(f"- `{r['criterion']}` {r['title']}: **{_tag[r['status']]}** "
+                     f"({', '.join(r['harnesses'])})")
+
     L += ["", "## Findings (aggregate)"]
     if not bundle["findings"]:
         L.append("- (none)")
