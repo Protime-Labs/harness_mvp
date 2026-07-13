@@ -55,7 +55,7 @@ _ALLOWED_KEYS = {
     "golden_controls.yaml": {"schema", "status", "external_dependency", "note", "domains", "controls", "catalogue"},
     "model_pricing.yaml": {"schema", "models"},
     "models.yaml": {"schema", "models"},
-    "trust_policy.yaml": {"schema", "trust_escalation", "gate_by_trust", "criteria", "criteria_profiles"},
+    "trust_policy.yaml": {"schema", "trust_escalation", "criteria", "criteria_profiles"},
     # budgets.yaml + quorum.yaml merge into CONFIG -> validated against DEFAULT_CONFIG keys below.
 }
 
@@ -130,7 +130,6 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
     require_when = copy.deepcopy(defaults.REQUIRE_WHEN)      # mandatory clauses (F3)
     models_registry = list(defaults.MODEL_REGISTRY)         # selectable models (Req 1)
     trust_escalation = copy.deepcopy(defaults.TRUST_ESCALATION)   # Req 2 negotiation
-    gate_by_trust = copy.deepcopy(defaults.GATE_BY_TRUST)
     criteria = copy.deepcopy(defaults.CRITERIA)
     criteria_profiles = copy.deepcopy(defaults.CRITERIA_PROFILES)
     golden_controls = {"domains": {}}
@@ -168,7 +167,6 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
         _check_keys("trust_policy.yaml", y_trust, _ALLOWED_KEYS["trust_policy.yaml"])
         if y_trust:
             trust_escalation = y_trust.get("trust_escalation", trust_escalation)
-            gate_by_trust = y_trust.get("gate_by_trust", gate_by_trust)
             criteria = y_trust.get("criteria", criteria)
             criteria_profiles = y_trust.get("criteria_profiles", criteria_profiles)
             sources.append("trust_policy.yaml")
@@ -233,7 +231,6 @@ def load_config(config_dir: Optional[str] = None, overrides: Optional[dict] = No
         "require_when": require_when,
         "models": models_registry,
         "trust_escalation": trust_escalation,
-        "gate_by_trust": gate_by_trust,
         "criteria": criteria,
         "criteria_profiles": criteria_profiles,
         "policy_hash": policy_hash,

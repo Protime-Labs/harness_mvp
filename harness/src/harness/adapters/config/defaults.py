@@ -38,8 +38,7 @@ DEFAULT_CONFIG = {
     "REDACT": True,
     "STRICT_CONFIG": None,                          # F5: None -> strict unless PROVIDER_MODE == "mock"
     "INHERENT_TRUST": None,                          # Req2: None -> derived from the selected model, else this
-    "MODE": "assurance",                             # Req2: "assurance" (red-team) | "operations" (inline)
-    "CRITERIA_PROFILE": None,                        # Req2: None -> derived from MODE
+    "CRITERIA_PROFILE": None,                        # Req2: criteria profile for the scorecard (default: assurance)
 }
 
 # --- risk model (BF-10 — PROVISIONAL, governance/risk owner tunes) ----------------------
@@ -90,7 +89,7 @@ REGISTRY = {
 # --- model registry (Req 1) — selectable models + governance-assigned INHERENT TRUST -----------
 # inherent_trust = how much we trust the model BEFORE testing (untrusted<low<moderate<high); it is
 # a governance judgement (provisional), NOT intrinsic. It drives negotiation (Req 2): lower trust ->
-# more harnesses + stricter gate. IDs are aliases used by `--model`/`--judge-model`. Operator-
+# MORE harnesses (monotonic, A11) — it never moves the gate. IDs are aliases used by `--model`/`--judge-model`. Operator-
 # editable via config/models.yaml. Model strings are LiteLLM ids (provider/model).
 INHERENT_TRUST_TIERS = ["untrusted", "low", "moderate", "high"]  # ordered least -> most trusted
 MODEL_REGISTRY = [
@@ -112,10 +111,6 @@ TRUST_ESCALATION = {
     "moderate":  ["H1.2", "H1.5"],
     "low":       ["H1.2", "H1.5", "H1.4", "H2.2"],
     "untrusted": ["H1.1", "H1.2", "H1.3", "H1.4", "H1.5", "H2.1", "H2.2", "H2.3", "H2.4"],
-}
-GATE_BY_TRUST = {                                    # tighten-only: lower trust -> stricter gate
-    "untrusted": {"fail_on_severity": "medium", "quorum_n": 5},   # lower fail-severity + MORE judges
-    "low":       {"fail_on_severity": "high", "quorum_n": 5},
 }
 # Safety criteria -> the harness(es) that test them, each tagged with the standard it maps to.
 # Honest attribution: only the four OWASP-LLM ids below are precise; safety/fairness/robustness are

@@ -1,4 +1,4 @@
-"""Req 2 — vulnerability × trust scorecard + trust reconciliation."""
+"""Req 2 — vulnerability × criteria scorecard + the grounded trusted_but_failing flag."""
 from harness.adapters.config import defaults
 from harness.application.scorecard import build_scorecard, resolve_profile
 
@@ -19,16 +19,17 @@ def test_scorecard_pass_warn_fail_nottested():
     assert rows["LLM07"] == "not_tested"                      # H2.4 not in the plan
 
 
-def test_trust_reconciliation_flags_downgrade():
+def test_trusted_but_failing_is_grounded_not_inferred():
+    # declared high + a blocking finding -> grounded flag; NO fabricated "observed trust"
     sc = build_scorecard(["LLM01"], CRIT, ["H2.1"], [_f("H2.1", True)], trust="high")
-    assert sc["observed_trust"] == "low" and sc["trust_downgrade"] is True
+    assert sc["trusted_but_failing"] is True and "observed_trust" not in sc
+    # declared high + clean -> not flagged
+    assert build_scorecard(["LLM01"], CRIT, ["H2.1"], [], trust="high")["trusted_but_failing"] is False
+    # only declared-HIGH trips it (a low-trust failing model is expected, not a surprise)
+    assert build_scorecard(["LLM01"], CRIT, ["H2.1"], [_f("H2.1", True)], trust="low")["trusted_but_failing"] is False
 
 
-def test_trust_consistent_when_all_pass():
-    sc = build_scorecard(["LLM01"], CRIT, ["H2.1"], [], trust="high")
-    assert sc["observed_trust"] == "high" and sc["trust_downgrade"] is False
-
-
-def test_resolve_profile_by_mode():
-    name, ids = resolve_profile({"MODE": "operations"}, defaults.CRITERIA_PROFILES)
+def test_resolve_profile_by_criteria():
+    name, ids = resolve_profile({"CRITERIA_PROFILE": "operations"}, defaults.CRITERIA_PROFILES)
     assert name == "operations" and set(ids) == {"LLM01", "LLM02", "LLM06"}
+    assert resolve_profile({}, defaults.CRITERIA_PROFILES)[0] == "assurance"   # default

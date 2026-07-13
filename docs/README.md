@@ -5,12 +5,13 @@ All project documentation, organized by purpose. **New here? Start with
 
 ## architecture/ — current architecture + diagrams
 - [ENTERPRISE_HARNESS_REFERENCE_ARCHITECTURE.md](architecture/ENTERPRISE_HARNESS_REFERENCE_ARCHITECTURE.md) — the seam-interface build reference (base layers, invariants, growth ladder)
-- [CONTROL_PLANE_EXTENDED_ARCHITECTURE.md](architecture/CONTROL_PLANE_EXTENDED_ARCHITECTURE.md) — the control plane as a **negotiator**: model switching, inherent trust, criteria profiles, two modes, vuln×trust scorecard
+- [CONTROL_PLANE_EXTENDED_ARCHITECTURE.md](architecture/CONTROL_PLANE_EXTENDED_ARCHITECTURE.md) — the control plane as a **negotiator**: model switching, inherent trust → harness escalation, criteria profiles, vuln×criteria scorecard (with the trimmed over-reaches marked)
+- [PILOT_SCOPE_AUDIT.md](architecture/PILOT_SCOPE_AUDIT.md) — candid scope/explainability audit; records the three applied trims (operations mode, observed-trust + gate rule 6c, gate-by-trust)
 - [GAP_ANALYSIS_AND_REQUESTS.md](architecture/GAP_ANALYSIS_AND_REQUESTS.md) — original architecture → prototype gap analysis + request/decision register
-- **Diagrams** (draw.io / pdf): `Enterprise_Harness_Architecture.drawio` (6-page system), `Control_Plane_Negotiation.drawio`, `Agentic_System_Framework_Governance.drawio` (+ `.pdf`), and the v1/annotated/platform-v2 references.
+- **Diagrams** (draw.io / pdf): `Enterprise_Harness_Architecture.drawio` (6-page system), `Control_Plane_Negotiation.drawio` *(depicts the **original** negotiation design — includes operations mode, gate-by-trust, and observed-trust reconciliation, all since trimmed; the extended-arch doc above is authoritative)*, `Agentic_System_Framework_Governance.drawio` (+ `.pdf`), and the v1/annotated/platform-v2 references.
 
 ## operations/ — how to run + validate
-- [RUNBOOK.md](operations/RUNBOOK.md) — **operate the harness**: launch the consoles, run assessments, switch models, choose a posture (mode/trust/criteria), read the scorecard, persist + replay, tune governance config
+- [RUNBOOK.md](operations/RUNBOOK.md) — **operate the harness**: launch the consoles, run assessments, switch models, choose a posture (trust/criteria), read the scorecard, persist + replay, tune governance config
 - [VALIDATION.md](operations/VALIDATION.md) — step-by-step acceptance walkthrough (with expected outputs + checklist)
 - [VALIDATION_REPORT.md](operations/VALIDATION_REPORT.md) — dated record of an actual validation run
 

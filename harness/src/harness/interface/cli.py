@@ -54,8 +54,6 @@ def _overrides(args) -> dict:
         ov["HTTP_HEADERS"] = args.target_header
     if getattr(args, "offline_judge", False):
         ov["OFFLINE_JUDGE"] = True
-    if getattr(args, "mode", None):
-        ov["MODE"] = args.mode
     if getattr(args, "criteria", None):
         ov["CRITERIA_PROFILE"] = args.criteria
     if getattr(args, "trust", None):
@@ -524,10 +522,8 @@ def build_parser() -> argparse.ArgumentParser:
                              "LiteLLM id (provider/model). Implies --provider litellm.")
         sp.add_argument("--judge-model", dest="judge_model", metavar="ID",
                         help="independent judge model (must differ from target, A4).")
-        sp.add_argument("--mode", choices=["operations", "assurance"],
-                        help="posture (Req2): assurance (red-team, default) | operations (inline guardrail)")
         sp.add_argument("--criteria", metavar="PROFILE",
-                        help="criteria profile (config/trust_policy.yaml): operations | assurance | cpni-strict")
+                        help="criteria profile for the scorecard (config/trust_policy.yaml): assurance | operations | cpni-strict")
         sp.add_argument("--trust", choices=["untrusted", "low", "moderate", "high"],
                         help="override inherent trust of the asset (else derived from --model)")
 

@@ -64,24 +64,27 @@ The control plane **negotiates** the harness plan + criteria + gate strictness f
 use-case risk × mode)`.
 
 ```powershell
-python -m harness run --mode assurance      # full red-team battery (default)
-python -m harness run --mode operations     # inline guardrail: LLM01/LLM02/LLM06, deterministic floor
-python -m harness run --criteria cpni-strict # a focused, regulator-facing criteria set
-python -m harness run --trust untrusted     # low-trust asset -> MORE harnesses + stricter gate (medium sev, 5 judges)
-python -m harness run --trust high          # a "trusted" model that fails -> flags a TRUST DOWNGRADE
+python -m harness run                         # assurance profile (default) — full criteria
+python -m harness run --criteria operations   # narrower scorecard criteria (LLM01/LLM02/LLM06)
+python -m harness run --criteria cpni-strict  # a focused, regulator-facing criteria set
+python -m harness run --trust untrusted       # low-trust asset -> MORE harnesses (escalation); gate threshold unchanged
+python -m harness run --trust high            # if a declared-high model still has a blocking finding, the scorecard flags it
 ```
-Lower trust only **adds** coverage and **tightens** the gate — never the reverse (**A11**). Tune the
-mappings in `config/trust_policy.yaml` (`trust_escalation`, `gate_by_trust`, `criteria`, `criteria_profiles`).
+Lower trust only **adds** harnesses — never the reverse (**A11**). It does **not** move the gate: the
+threshold is one governance decision (see [PILOT_SCOPE_AUDIT.md](../architecture/PILOT_SCOPE_AUDIT.md) C1).
+Tune the mappings in `config/trust_policy.yaml` (`trust_escalation`, `criteria`, `criteria_profiles`).
 
 **Reading the scorecard** (printed + in the dashboard):
 ```
-## Scorecard — vulnerability × trust (mode: assurance · profile: assurance)
-0 pass · 0 warn · 4 fail · 3 not-tested · trust declared high / observed low  ·  (!) TRUST DOWNGRADE -> manual review
-- `LLM01` Prompt Injection: FAIL (H2.1)
+## Scorecard — vulnerability × criteria (profile: assurance)
+0 pass · 0 warn · 4 fail · 3 not-tested · declared trust high  ·  (!) declared-high yet a blocking finding
+- `LLM01` Prompt Injection [OWASP LLM01:2025]: FAIL (H2.1)
 ```
-- **pass / warn / fail / not-tested** per known-vulnerability criterion (OWASP-LLM / MITRE ATLAS).
-- **trust reconciliation**: *declared* (the model's tier) vs *observed* (its behaviour). A downgrade
-  routes the gate to `manual_review` (rule `6c`, unless a hard block already wins).
+- **pass / warn / fail / not-tested** per criterion; the `[std]` tag shows the standard — OWASP-LLM
+  2025 where precise, otherwise NIST/ATLAS for safety/fairness/robustness (governance owns the map).
+- **declared trust** is echoed as-is; `trusted_but_failing` flags the grounded case of a declared-high
+  model that still produced a blocking finding. It is **informational** — the harness does not infer an
+  "observed trust" tier or gate on it (removed per the audit, B1).
 
 ---
 
@@ -96,7 +99,7 @@ python -m harness evaluate --asset-version AST-...-v1 --usecase UC-... --bundle 
 python -m harness run-show RUN-0001                    # the RUN-id evaluate printed: status, gate, audit trail
 python -m harness validate-run runs\RUN-demo           # replay the gate from the bundle dir (chain-of-custody)
 ```
-`evaluate` accepts all the run/posture flags (`--model`, `--mode`, `--trust`, …). `validate-run`
+`evaluate` accepts all the run/posture flags (`--model`, `--criteria`, `--trust`, …). `validate-run`
 reproduces the gate in a **separate process from evidence alone**; a tampered evidence file → **FAIL**.
 
 ---
@@ -140,7 +143,6 @@ First matching rule wins:
 | 6 | blocking finding (≥ FAIL_ON_SEVERITY) | block |
 | 6a | declared-vs-observed data mismatch | manual_review |
 | 6b | cost undetermined (cost-governed run) | manual_review |
-| 6c | inherent-trust downgrade | manual_review |
 | 7 | high (non-blocking) finding | warn |
 | 8 | otherwise | approve |
 
@@ -156,7 +158,7 @@ Edit the owner-owned YAML under `harness/config/` (loaded over the baked-in defa
 | File | Owner | Controls |
 |---|---|---|
 | `risk_weights.yaml` | governance/risk | weights, cutoffs, per-tier **packs**, `require_when` clauses |
-| `trust_policy.yaml` | governance/eval | trust escalation, gate-by-trust, **criteria** map, criteria profiles |
+| `trust_policy.yaml` | governance/eval | trust escalation (harness set only), **criteria** map + `std`, criteria profiles |
 | `models.yaml` | platform | selectable models + inherent-trust tiers |
 | `quorum.yaml` · `budgets.yaml` | eval · platform | judges, thresholds, budgets |
 | `golden_controls.yaml` | governance | control mapping (currently an **unresolved** dependency record) |
@@ -169,7 +171,7 @@ Guards: unknown keys or inverted cutoffs **fail loud** (STRICT_CONFIG); a runtim
 ## 10. Regression gate (the platform's own CI)
 
 ```powershell
-python -m pytest -q                 # 93 unit/integration tests
+python -m pytest -q                 # 91 unit/integration tests
 python -m harness verify            # the 11 machine-checked invariants -> OVERALL: ALL PASS
 ```
 `.github/workflows/ci.yml` runs both on every push/PR (Python 3.10–3.13). Green = safe to ship.

@@ -26,11 +26,10 @@ def render_report(bundle: Dict[str, Any], specs: Dict[str, Any]) -> str:
     sc = bundle.get("scorecard")
     if sc:
         s = sc["summary"]
-        L += ["", f"## Scorecard — vulnerability × trust (mode: {sc['mode']} · profile: {sc['profile']})",
+        L += ["", f"## Scorecard — vulnerability × criteria (profile: {sc['profile']})",
               f"**{s['pass']} pass · {s['warn']} warn · {s['fail']} fail · {s['not_tested']} not-tested** · "
-              f"trust declared **{sc.get('declared_trust') or 'n/a'}** / observed "
-              f"**{sc.get('observed_trust') or 'n/a'}**"
-              + ("  ·  (!) TRUST DOWNGRADE -> manual review" if sc.get("trust_downgrade") else "")]
+              f"declared trust **{sc.get('declared_trust') or 'n/a'}**"
+              + ("  ·  (!) declared-high yet a blocking finding" if sc.get("trusted_but_failing") else "")]
         _tag = {"pass": "PASS", "warn": "WARN", "fail": "FAIL", "not_tested": "n/a"}
         for r in sc["rows"]:
             _std = f" [{r['std']}]" if r.get("std") else ""

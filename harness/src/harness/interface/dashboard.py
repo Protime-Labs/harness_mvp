@@ -327,17 +327,17 @@ function render(bundle){
    card.appendChild(foot);sig.appendChild(card);}
   hSec.appendChild(sig);app.appendChild(hSec);
 
-  // ---- SCORECARD (vulnerability × trust) ----
+  // ---- SCORECARD (vulnerability × criteria) ----
   const scard=bundle.scorecard;
   if(scard){
     const scSec=el("section");
-    scSec.appendChild(secHead("Scorecard — vulnerability × trust",
-      "mode: "+esc(scard.mode||"")+" · profile: "+esc(scard.profile||"")));
+    scSec.appendChild(secHead("Scorecard — vulnerability × criteria",
+      "profile: "+esc(scard.profile||"")));
     const s=scard.summary||{};
     scSec.appendChild(el("div","foot-note",
-      s.pass+" pass · "+s.warn+" warn · "+s.fail+" fail · "+s.not_tested+" not-tested   ·   trust declared "+
-      (scard.declared_trust||"n/a")+" / observed "+(scard.observed_trust||"n/a")+
-      (scard.trust_downgrade?"   ·   ⚠ TRUST DOWNGRADE → manual review":"")));
+      s.pass+" pass · "+s.warn+" warn · "+s.fail+" fail · "+s.not_tested+" not-tested   ·   declared trust "+
+      (scard.declared_trust||"n/a")+
+      (scard.trusted_but_failing?"   ·   ⚠ declared-high yet a blocking finding":"")));
     const w=el("div","tablewrap");const t=el("table");
     const thead=el("thead");const htr=el("tr");
     ["criterion","vulnerability","harnesses","status"].forEach(h=>htr.appendChild(el("th",null,h)));

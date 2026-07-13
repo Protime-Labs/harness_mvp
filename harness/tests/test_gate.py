@@ -102,15 +102,6 @@ def test_declaration_mismatch_routes_manual_review():
                          context_status=cs).decision == "block"
 
 
-def test_trust_downgrade_routes_manual_review():
-    cs = {"trust_downgrade": True}
-    d = gate_decision("allow", [], [], True, context_status=cs)
-    assert d.decision == "manual_review" and d.matched_rule == "6c.trust_downgrade"
-    # a real block still wins (ordered after the block rules)
-    assert gate_decision("allow", [], [_f("critical", basis="detector(real-content)")], True,
-                         context_status=cs).decision == "block"
-
-
 def test_no_llm_tokens_in_gate():
     banned = {"invoke", "completion", "judge", "aggregate"}
     assert banned.isdisjoint(set(gate_decision.__code__.co_names))

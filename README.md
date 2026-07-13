@@ -12,17 +12,18 @@ rewriting the core.
 
 ```
 Status (mock):   vulnerable → BLOCK (8 findings)   hardened → APPROVE (0)
-Verify:          11 / 11 invariants PASS            Tests: 93 passed
+Verify:          11 / 11 invariants PASS            Tests: 91 passed
 Model switching: harness models · --model <id> --judge-model <id>   (judge independence enforced, A4)
-Posture:         --trust / --criteria negotiate the harness plan + a vulnerability × trust scorecard
+Posture:         --trust adds harnesses (never moves the gate) · --criteria scopes a vuln × criteria scorecard
 Lab plugins:     19 / 24 runnable   (5 enterprise deps stubbed by design)
 ```
 
 > **Scope honesty:** the pilot core is the *deterministic gate on one auditable policy* + *replayable
 > evidence*. Recent extensions (model switching, trust-driven negotiation, the scorecard, SQLite
-> persistence) are reviewed in **[docs/architecture/PILOT_SCOPE_AUDIT.md](docs/architecture/PILOT_SCOPE_AUDIT.md)** —
-> which flags where a few of them over-reach for a mock pilot. Read it before relying on `--mode
-> operations` or the trust-downgrade signal.
+> persistence) are reviewed in **[docs/architecture/PILOT_SCOPE_AUDIT.md](docs/architecture/PILOT_SCOPE_AUDIT.md)**,
+> which flagged three over-reaches for a mock pilot — an "operations" runtime mode, a fabricated
+> "observed trust" metric, and trust-varying gate strictness — **all now trimmed.** Trust adds
+> harnesses; it never moves the gate. The scorecard reports; the domain gate decides.
 
 ---
 

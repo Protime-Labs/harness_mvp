@@ -1,39 +1,21 @@
-"""Req 2 — the vulnerability × trust scorecard. PURE (deterministic renderer over findings).
+"""Req 2 — the vulnerability × criteria scorecard. PURE (deterministic view over findings).
 
-Maps the run's findings onto the selected safety criteria (OWASP-LLM / MITRE ATLAS) and grades each
-pass / warn / fail / not_tested, then reconciles the model's DECLARED inherent trust against its
-OBSERVED behaviour. A high-trust model that fails a criterion is an observed downgrade — the same
-"declared vs observed" signal as F7, now for the model rather than the use case.
+Maps the run's findings onto the selected safety criteria (see config/trust_policy.yaml) and grades
+each pass / warn / fail / not_tested. It is purely a VIEW over the same findings the gate saw — no
+new evidence, no model call — so it replays from the M3 bundle unchanged.
 
-No new evidence, no model call: it is a deterministic view of the same findings the gate saw, so it
-replays from the M3 bundle unchanged.
+Trust: it echoes the asset's DECLARED inherent trust and flags the grounded case where a
+declared-high-trust asset still produced a blocking finding (`trusted_but_failing`). It deliberately
+does NOT infer an "observed trust" tier and does NOT gate on it — that was a fabricated metric,
+removed per docs/architecture/PILOT_SCOPE_AUDIT.md (B1).
 """
 from __future__ import annotations
 
 from typing import Dict, List
 
-_TRUST_ORDER = {"untrusted": 0, "low": 1, "moderate": 2, "high": 3}
-
-
-def _trust_rank(t) -> int:
-    return _TRUST_ORDER.get(t, 99)
-
-
-def _observed_trust(rows: List[dict]):
-    """Infer trust from behaviour: any fail -> low, any warn -> moderate, all pass -> high."""
-    statuses = {r["status"] for r in rows}
-    if "fail" in statuses:
-        return "low"
-    if "warn" in statuses:
-        return "moderate"
-    if "pass" in statuses:
-        return "high"
-    return None  # nothing in scope was tested
-
 
 def build_scorecard(profile_ids: List[str], criteria: Dict[str, dict], ran_harnesses: List[str],
-                    findings: List[dict], trust: str = None, mode: str = "assurance",
-                    profile_name: str = "assurance") -> dict:
+                    findings: List[dict], trust: str = None, profile_name: str = "assurance") -> dict:
     """`findings` are serialized Finding dicts (harness, severity, blocking, id). Returns the scorecard."""
     ran = set(ran_harnesses)
     rows = []
@@ -54,20 +36,18 @@ def build_scorecard(profile_ids: List[str], criteria: Dict[str, dict], ran_harne
                      "harnesses": harnesses, "status": status, "findings": len(hits),
                      "evidence": [f.get("id") for f in hits][:3]})
 
-    observed = _observed_trust(rows)
-    downgrade = bool(trust and observed and _trust_rank(observed) < _trust_rank(trust))
+    # Grounded trust signal (informational, not a gate input): a model we DECLARED high-trust that
+    # still produced a blocking finding — a fact about the findings, not an inferred tier.
+    trusted_but_failing = bool(trust == "high" and any(r["status"] == "fail" for r in rows))
     summary = {s: sum(1 for r in rows if r["status"] == s)
                for s in ("pass", "warn", "fail", "not_tested")}
-    return {
-        "mode": mode, "profile": profile_name,
-        "declared_trust": trust, "observed_trust": observed, "trust_downgrade": downgrade,
-        "summary": summary, "rows": rows,
-    }
+    return {"profile": profile_name, "declared_trust": trust,
+            "trusted_but_failing": trusted_but_failing, "summary": summary, "rows": rows}
 
 
 def resolve_profile(cfg: dict, criteria_profiles: Dict[str, list]) -> tuple:
-    """Pick the criteria profile: explicit CRITERIA_PROFILE, else the MODE's profile, else assurance."""
-    name = cfg.get("CRITERIA_PROFILE") or cfg.get("MODE") or "assurance"
+    """Pick the criteria profile: explicit CRITERIA_PROFILE, else assurance."""
+    name = cfg.get("CRITERIA_PROFILE") or "assurance"
     if name not in criteria_profiles:
         name = "assurance"
     return name, criteria_profiles.get(name, criteria_profiles.get("assurance", []))
