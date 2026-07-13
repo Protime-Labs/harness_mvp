@@ -159,6 +159,23 @@ td.sev .st{position:absolute;left:0;top:0;bottom:0;width:5px}
 .miss{margin:0;padding-left:18px;color:var(--muted);font-size:13px}
 .miss li{margin:5px 0}
 
+/* how-to legend (self-explaining dashboard) */
+.howto{margin:16px 0 0;border:1px solid var(--border);border-radius:10px;background:var(--surface);overflow:hidden}
+.howto>summary{cursor:pointer;padding:11px 16px;font-weight:600;font-size:13px;list-style:none;
+  display:flex;align-items:center;gap:8px;color:var(--ink)}
+.howto>summary::-webkit-details-marker{display:none}
+.howto>summary::before{content:"?";display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;border-radius:50%;background:var(--surface-2);color:var(--muted);
+  font-size:11px;font-weight:700}
+.howto[open]>summary{border-bottom:1px solid var(--border)}
+.howto .body{padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.55}
+.howto .body p{margin:0 0 12px}
+.howto .body b{color:var(--ink)}
+.howto .body dl{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:7px 16px;margin:0}
+.howto .body dt{font-weight:600;color:var(--ink);font-family:var(--mono);font-size:12px}
+.howto .body dd{margin:0}
+.howto .body .tip{margin:12px 0 0;font-size:12px;color:var(--faint)}
+
 /* plugin inventory */
 .legend{display:flex;flex-wrap:wrap;gap:14px;margin:-4px 0 14px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
@@ -187,6 +204,31 @@ td.sev .st{position:absolute;left:0;top:0;bottom:0;width:5px}
   <label class="btn" title="Load a local result/bundle JSON">Load bundle…
     <input id="file" type="file" accept="application/json,.json" hidden></label>
 </div></div>
+
+<div class="wrap">
+<details class="howto">
+  <summary>How to read this dashboard</summary>
+  <div class="body">
+    <p>This page is a <b>read-only report</b> for one assurance run. A <b>bundle</b>
+      (<code>result_bundle.json</code>) is the complete saved record of that run — the gate decision,
+      findings, evidence, scorecard and config. The <b>target</b> is either a <b>mock</b> (a built-in
+      simulated model — no API key, no cost, deterministic; profile <code>vulnerable</code> ⇒ findings + BLOCK,
+      <code>hardened</code> ⇒ 0 findings + APPROVE) or a <b>real</b> endpoint. Use the <b>Run</b> selector
+      (top bar) to switch between bundles embedded in this page (e.g. mock vs real), or <b>Load bundle…</b>
+      to open a saved <code>result_bundle.json</code> from disk — neither re-runs anything.</p>
+    <dl>
+      <dt>Hero</dt><dd>The verdict — the gate badge (APPROVE / WARN / BLOCK / MANUAL_REVIEW) plus chips. <b>Mode-A replay: reproduced</b> means the decision was rebuilt from evidence alone.</dd>
+      <dt>Inputs</dt><dd>What produced the decision — the asset &amp; use case (drives risk) and the run configuration (provider, target &amp; judge model, quorum, fail-on severity, seed).</dd>
+      <dt>Enterprise readiness</dt><dd>Whether this is a <b>real</b> or a <b>mock/simulated</b> run, and which enterprise dependencies are still stubbed for the pilot.</dd>
+      <dt>Harness signals</dt><dd>What was tested — one card per harness with its finding count and a decision LED, plus the H5.1 governance self-check.</dd>
+      <dt>Scorecard</dt><dd>Coverage vs known-vulnerability criteria (OWASP-LLM / NIST / ATLAS): PASS / WARN / FAIL, or <b>n/a</b> = not tested in this pack.</dd>
+      <dt>Findings</dt><dd>Why it failed — each confirmed finding's severity, category, harness, and <b>basis</b> (detector = deterministic evidence; judge = model verdict).</dd>
+    </dl>
+    <p class="tip">Read top-down: the badge is the verdict, Enterprise-readiness tells you real vs mock,
+      Harness-signals + Scorecard show what was tested, Findings show why it failed.</p>
+  </div>
+</details>
+</div>
 
 <div class="wrap" id="app"></div>
 

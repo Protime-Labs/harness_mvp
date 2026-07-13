@@ -30,6 +30,37 @@ Optional real integrations: `pip install -e ".[all]"` (litellm, presidio, inspec
 Both bind to `127.0.0.1`. The dashboard is served at `…/harness_dashboard.html`; use **Load bundle…** to
 drop in any `runs/RUN-…/result_bundle.json`. Stop a server with Ctrl-C (or ask the operator to kill it).
 
+### Reading the dashboard
+
+Three terms first, because they trip people up:
+
+- **mock** — a built-in **simulated** target model (no API key, no cost, deterministic). It exists so you
+  can see the whole pipeline run with zero setup. Two profiles: `--profile vulnerable` (a deliberately
+  broken agent → findings + **BLOCK**) and `--profile hardened` (a safe agent → 0 findings + **APPROVE**).
+  Point at a **real** model instead with `--provider litellm --model <id>`; only the "target" changes.
+- **bundle** — `result_bundle.json`, the **complete saved record of one run**: gate decision, every finding,
+  evidence trail, scorecard, config, replay result. The audit receipt. Written with `run --bundle DIR` or
+  by `evaluate`.
+- **Load bundle… / Run selector** — the dashboard is a *viewer*. **Load bundle…** opens a saved
+  `result_bundle.json` from disk and renders it **without re-running**; the **Run** dropdown (top bar)
+  switches between bundles embedded in one page (e.g. a mock run vs a real run). The same explanation is
+  baked into every generated dashboard under the **"How to read this dashboard"** toggle.
+
+Panels, top to bottom:
+
+| Panel | Answers | Read it as |
+|---|---|---|
+| **Hero** (badge + chips) | the verdict | gate badge = APPROVE / WARN / BLOCK / MANUAL_REVIEW; `Mode-A replay: reproduced` = decision rebuilt from evidence alone |
+| **Inputs** | what produced the decision | asset & use case (drives risk) + run config (provider, target/judge model, quorum, fail-on severity, seed) |
+| **Enterprise readiness** | real or mock? | `target: real endpoint/model` vs `mock/simulated`; plus the enterprise deps still stubbed for the pilot |
+| **Harness signals** | what was tested | one card per harness (finding count + decision LED) + the H5.1 governance self-check |
+| **Scorecard** | coverage vs known vulns | per-criterion PASS / WARN / FAIL / **n/a** (not tested in this pack) — see §4 |
+| **Findings** | why it failed | severity · category · harness · **basis** (detector = deterministic; judge = model verdict) · OWASP tag |
+
+Rule of thumb: **read top-down** — badge = verdict, Enterprise-readiness = real vs mock, Harness-signals +
+Scorecard = what was tested, Findings = why it failed. (The **probe** console is the *other* surface — one
+prompt, watched live — not this results view.)
+
 ---
 
 ## 2. Run an assessment (offline mock)
