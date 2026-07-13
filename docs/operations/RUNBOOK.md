@@ -191,4 +191,4 @@ python -m harness verify            # the 11 machine-checked invariants -> OVERA
 ### Appendix — command reference
 `run · verify · validate-run · db-init · asset-register · usecase-create · evaluate · run-show ·
 dashboard · plugins · models · doctor · demo-target · probe · info`  —  add `-h` to any for options.
-See `VALIDATION.md` for the acceptance walkthrough and `CONTROL_PLANE_EXTENDED_ARCHITECTURE.md` for the design.
+See `VALIDATION.md` for the acceptance walkthrough and `../architecture/CONTROL_PLANE_EXTENDED_ARCHITECTURE.md` for the design.

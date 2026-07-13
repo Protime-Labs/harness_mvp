@@ -3,7 +3,7 @@
 **Subject:** Enterprise AI Assurance Harness
 **Baseline (design):** the design corpus (`enterprise_harness_*.md`, `ENTERPRISE_HARNESS_REFERENCE_ARCHITECTURE.md`, base-layer + backfill registers)
 **Delivered (prototype):** `origin/main` @ `c257619` — M1–M5 + vendor-neutral + endpoint assets + control-plane hardening (F1–F8)
-**Status of prototype:** 80 tests pass · `harness verify` 11/11 invariants · both DoD flows demonstrated (see `VALIDATION_REPORT.md`)
+**Status of prototype:** 80 tests pass · `harness verify` 11/11 invariants · both DoD flows demonstrated (see `../operations/VALIDATION_REPORT.md`)
 **Purpose:** the decisions, sign-offs, and data to *request* from the architecture/enterprise owners to take the prototype from a proven core to an enterprise MVP.
 
 > **Update — 2026-07-10 (`c257619`):** a control-plane hardening sprint (F1–F8) has landed, so several items below are now stronger than stated. **Closed/strengthened:** risk tier now *drives* selection (per-tier packs + `require_when`, new invariant **A11**); unknown risk attributes **fail closed** → `manual_review`; the gate is **policy-hash provenanced** (drift-detected on replay); config **fails loud** (STRICT_CONFIG + unknown-key + inverted-cutoff guards) and overrides are **tighten-only**; declared-vs-observed contradictions route to review; selection is **explainable**. **Unchanged:** the *enterprise* gaps in §5/§6 (Golden Controls, Janus/Model-Router, WORM/SIEM/RBAC, persistence & catalogue breadth, the real judge ground-truth set).

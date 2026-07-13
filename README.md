@@ -85,30 +85,23 @@ Dependencies point **inward**; the domain is pure (stdlib only). The framework e
 
 ```
 harness_mvp/
-├── README.md                                  ← this file
-├── ENTERPRISE_HARNESS_REFERENCE_ARCHITECTURE.md   the personal build reference (seam specs, ladder)
-├── harness/                                   ← the functional prototype (clean architecture)
-│   ├── README.md                              package quickstart + layout
-│   ├── pyproject.toml                         packaging + optional extras
-│   ├── config/*.yaml                          B6 tuning surface (risk, quorum, budgets, controls)
-│   ├── src/harness/{domain,ports,application,adapters,registry,interface}/
-│   ├── tests/                                 gate · e2e-mock · invariants (12 tests)
-│   ├── examples/run_mock.py
-│   └── RESULTS_ITER1_real_runtime.md          Gate G1 real-runtime test record
-└── design corpus (markdown):
-    ├── enterprise_harness.md                  original architecture
-    ├── enterprise_harness_architecture_v3.md  invariants A1–A10
-    ├── enterprise_harness_agentic_workflows.md  workflows W0–W9, W-A/B/C
-    ├── enterprise_harness_catalogue.md        21-harness catalogue + packs
-    ├── enterprise_harness_design.md           R1–R9, config gaps G1–G14
-    ├── enterprise_harness_spec_addendum_C1-C6.md
-    ├── enterprise_harness_base_layers_and_accountability.md  B0–B6 + architect model
-    ├── enterprise_harness_v1_backfill_register.md   BF-01..BF-24 (decided/provisional/placeholder)
-    ├── enterprise_harness_phase2_frontier_frameworks.md  Cisco/NVIDIA/MS/Anthropic
-    └── … (reviews, correlations, evaluation & prototype guides)
+├── README.md                    ← this file (landing page)
+├── docs/                        ← documentation hive (see docs/README.md)
+│   ├── architecture/            reference + extended architecture · gap analysis · draw.io/pdf diagrams
+│   ├── operations/              RUNBOOK · VALIDATION · VALIDATION_REPORT
+│   └── design/                  the original design corpus (R/A/C invariants · W0–W9 · catalogue · BF/DR registers · reviews)
+└── harness/                     ← the functional prototype (clean architecture)
+    ├── README.md                package quickstart + layout
+    ├── pyproject.toml           packaging + optional extras
+    ├── config/*.yaml            B6 tuning surface (risk · quorum · budgets · models · trust · controls)
+    ├── src/harness/{domain,ports,application,adapters,registry,storage,interface}/
+    ├── tests/                   gate · e2e · invariants · scorecard · config · …
+    ├── examples/
+    └── RESULTS_ITER1_real_runtime.md   Gate G1 real-runtime test record
 ```
 
-> The functional prototype lives on the **`dev-harness-mvp`** branch under `harness/`.
+> **Documentation** is under [`docs/`](docs/README.md): [operations/RUNBOOK.md](docs/operations/RUNBOOK.md)
+> to operate it, [architecture/](docs/architecture/) for the design, [design/](docs/design/) for the source corpus.
 
 ---
 
@@ -244,8 +237,8 @@ Grow the prototype by filling seams; each gate must keep `harness verify` green 
 | **Iter 5** Golden Controls | AT&T control catalogue mapping | ▫ enterprise |
 | **Iter 6** integration | Janus / Model Router behind `ModelPort` | ▫ enterprise |
 
-See **`ENTERPRISE_HARNESS_REFERENCE_ARCHITECTURE.md`** for the full seam interface specs and the
-per-layer enterprise-scale growth plan.
+See **[`docs/architecture/ENTERPRISE_HARNESS_REFERENCE_ARCHITECTURE.md`](docs/architecture/ENTERPRISE_HARNESS_REFERENCE_ARCHITECTURE.md)**
+for the full seam interface specs and the per-layer enterprise-scale growth plan.
 
 ---
 
