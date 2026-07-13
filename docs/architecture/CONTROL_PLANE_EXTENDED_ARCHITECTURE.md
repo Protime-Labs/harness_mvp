@@ -4,6 +4,10 @@
 1. **Switch models via the console/API** (implemented — Req 1).
 2. **Trust-tiered vulnerability results** — the control plane *negotiates* which harnesses run and which safety criteria apply, in both **operations** and **assurance** modes, and emits a **vulnerability × trust** scorecard (designed here — Req 2).
 
+> **⚠ Scope caveats — read with [PILOT_SCOPE_AUDIT.md](PILOT_SCOPE_AUDIT.md).** Two claims below over-reach and are pending a decision:
+> - **"operations mode" is a criteria profile only — NOT an inline runtime guardrail.** `--mode operations` merely narrows the scorecard's criteria list; the run is identical to `assurance`. An on-path runtime guardrail is an *explicit non-goal* of the design and is **not implemented** — ignore the "inline / low-latency / no-hot-path-judge" framing in §4 until/unless that decision is made.
+> - **"observed trust" is a heuristic, not a measurement.** The trust reconciliation in §5 infers an ordinal from finding statuses; the gate rule that acts on it (`6c.trust_downgrade`) is under review for removal in favour of a grounded "declared-high + blocking-finding" signal.
+
 ---
 
 ## 0. Positioning — the control plane is not just a gate

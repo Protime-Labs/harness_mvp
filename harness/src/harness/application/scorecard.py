@@ -50,8 +50,8 @@ def build_scorecard(profile_ids: List[str], criteria: Dict[str, dict], ran_harne
             status = "warn"
         else:
             status = "pass"
-        rows.append({"criterion": cid, "title": c.get("title", cid), "harnesses": harnesses,
-                     "status": status, "findings": len(hits),
+        rows.append({"criterion": cid, "title": c.get("title", cid), "std": c.get("std", ""),
+                     "harnesses": harnesses, "status": status, "findings": len(hits),
                      "evidence": [f.get("id") for f in hits][:3]})
 
     observed = _observed_trust(rows)

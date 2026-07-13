@@ -5,17 +5,24 @@
 > produces **one deterministic gate decision** — `approve · warn · block · manual_review` — with
 > **no LLM anywhere in the decision path**.
 
-Built for AT&T's Enterprise AI Harness Platform. The functional prototype runs **offline on the
-Python standard library alone** (mock provider, no keys, no network) and swaps to real models
-(LiteLLM), real PII detection (Presidio), toxicity (Detoxify), and external red-team engines
-(Inspect AI, PyRIT) by **filling a seam** — never by rewriting the core.
+The functional prototype runs **offline on the Python standard library alone** (mock provider, no
+keys, no network) and swaps to real models (LiteLLM), real PII detection (Presidio), toxicity
+(Detoxify), and external red-team engines (Inspect AI, PyRIT) by **filling a seam** — never by
+rewriting the core.
 
 ```
 Status (mock):   vulnerable → BLOCK (8 findings)   hardened → APPROVE (0)
-Verify:          10 / 10 invariants PASS            Tests: 12 passed
-Real runtime:    Haiku 4.5 target / Sonnet 4.5 judge → APPROVE (safe model refuses)  [Gate G1 ✓]
-Lab plugins:     18 / 23 runnable   (5 enterprise deps stubbed by design)
+Verify:          11 / 11 invariants PASS            Tests: 93 passed
+Model switching: harness models · --model <id> --judge-model <id>   (judge independence enforced, A4)
+Posture:         --trust / --criteria negotiate the harness plan + a vulnerability × trust scorecard
+Lab plugins:     19 / 24 runnable   (5 enterprise deps stubbed by design)
 ```
+
+> **Scope honesty:** the pilot core is the *deterministic gate on one auditable policy* + *replayable
+> evidence*. Recent extensions (model switching, trust-driven negotiation, the scorecard, SQLite
+> persistence) are reviewed in **[docs/architecture/PILOT_SCOPE_AUDIT.md](docs/architecture/PILOT_SCOPE_AUDIT.md)** —
+> which flags where a few of them over-reach for a mock pilot. Read it before relying on `--mode
+> operations` or the trust-downgrade signal.
 
 ---
 
@@ -77,7 +84,7 @@ Dependencies point **inward**; the domain is pure (stdlib only). The framework e
 
 ### Invariants (proved by `harness verify`)
 
-`A1` no LLM in the gate · `R2/A2` provider independence · `A3` evidence capture · `A4` isolated + independent judge · `A5` judge quorum of N · `C3` detectors floor the judge · `A7` determinism · `A8` budgets fail closed · `C4` Mode-A replay reproduces findings + gate · `A9/C1` calibrated judges · `R9` valid gate vocabulary.
+`A1` no LLM in the gate · `R2/A2` provider independence · `A3` evidence capture · `A4` isolated + independent judge · `A5` judge quorum of N · `C3` detectors floor the judge · `A7` determinism · `A8` budgets fail closed · `C4` Mode-A replay reproduces findings + gate · `A9/C1` calibrated judges · `A11` monotonic selection (adding risk/lowering trust never shrinks coverage) · `R9` valid gate vocabulary.
 
 ---
 
@@ -216,7 +223,7 @@ judge calibration, and the **Plugins & dependencies** inventory. Theme-aware, se
 | **available** | runs now (built-in, or a wired + installed package) | mock, LiteLLM, regex, Presidio, Detoxify, file evidence, YAML, HTML dashboard, JSON bundle · drivers: **builtin, overlay, pyrit, inspect_ai** |
 | **installable** | a `pip install` away | Garak, NeMo Guardrails (model-bound — real adapters, need a live target/LLM) |
 | **stub** | seam defined, buildable in the lab | Ollama, Llama Guard, Promptfoo |
-| **enterprise** | needs an enterprise dependency **not wired** into the lab | **Janus, Model Router, quarantine scanners, WORM store, AT&T Golden Controls** |
+| **enterprise** | needs an enterprise dependency **not wired** into the lab | **Janus, Model Router, quarantine scanners, WORM store, Golden Controls** |
 
 The lab exercises everything built-in / pip-installable / buildable and keeps the enterprise
 dependencies clearly separated — a realistic environment with no production coupling.
@@ -234,7 +241,7 @@ Grow the prototype by filling seams; each gate must keep `harness verify` green 
 | **Iter 2** real detector | Presidio PII/CPNI + Detoxify toxicity | ✅ wired, available |
 | **Iter 3** real driver | external engine on the B3 seam | ✅ Inspect AI + PyRIT + agentic overlay |
 | **Iter 4** durable evidence | S3/WORM behind `EvidencePort` | ▫ enterprise |
-| **Iter 5** Golden Controls | AT&T control catalogue mapping | ▫ enterprise |
+| **Iter 5** Golden Controls | enterprise control catalogue mapping | ▫ enterprise |
 | **Iter 6** integration | Janus / Model Router behind `ModelPort` | ▫ enterprise |
 
 See **[`docs/architecture/ENTERPRISE_HARNESS_REFERENCE_ARCHITECTURE.md`](docs/architecture/ENTERPRISE_HARNESS_REFERENCE_ARCHITECTURE.md)**
@@ -251,5 +258,5 @@ no model call — proven by the `A1 no-LLM in gate` acceptance check.
 
 ---
 
-*Prototype branch: `dev-harness-mvp`. The core runs with zero installs; every real integration is
-an optional extra behind a seam.*
+*On `main`. The core runs with zero installs; every real integration is an optional extra behind a
+seam. See `docs/` for the runbook, architecture, and the pilot-scope audit.*

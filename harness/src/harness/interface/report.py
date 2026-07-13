@@ -33,7 +33,8 @@ def render_report(bundle: Dict[str, Any], specs: Dict[str, Any]) -> str:
               + ("  ·  (!) TRUST DOWNGRADE -> manual review" if sc.get("trust_downgrade") else "")]
         _tag = {"pass": "PASS", "warn": "WARN", "fail": "FAIL", "not_tested": "n/a"}
         for r in sc["rows"]:
-            L.append(f"- `{r['criterion']}` {r['title']}: **{_tag[r['status']]}** "
+            _std = f" [{r['std']}]" if r.get("std") else ""
+            L.append(f"- `{r['criterion']}` {r['title']}{_std}: **{_tag[r['status']]}** "
                      f"({', '.join(r['harnesses'])})")
 
     L += ["", "## Findings (aggregate)"]
