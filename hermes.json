@@ -1,0 +1,125 @@
+// =============================================================================
+// hermes.json — Hermes harness config, Janus / CSO Agentic Overlay aligned
+// Location: ~/.hermes/hermes.json   (JSON5 — comments OK)
+//
+// Same overlay contract as openclaw.json / nemoclaw.json. Hermes-specific
+// pieces: native command approval/allowlists (surfaced to the overlay as the
+// autonomy ladder) and pluggable memory providers with residency implications.
+// =============================================================================
+{
+  // --- Agent registry entry ---
+  identity: {
+    harness: "hermes",
+    agentId: "hermes-analyst-01",
+    role: "analyst",
+    workspace: "~/.hermes/workspace",
+    registry: "http://127.0.0.1:18791/registry",
+  },
+
+  // --- Model routing ---
+  models: {
+    routing: "tiered",
+    tiers: [
+      { name: "t0", model: "gemini-flash",      use: "triage" },
+      { name: "t1", model: "claude-haiku-4-5",  use: "analysis default" },
+      { name: "t2", model: "claude-sonnet-4-6", use: "deep analysis / reports" },
+    ],
+    spendCeilingUSDPerDay: 15,
+  },
+
+  // --- Network posture ---
+  network: {
+    gatewayBind: "127.0.0.1:18989",
+    mcpSidecarBind: "127.0.0.1:18990",
+    egress: {
+      mode: "allowlist",
+      allow: ["api.anthropic.com", "generativelanguage.googleapis.com"],
+      logDenied: true,
+    },
+  },
+
+  // --- Tool controls ---
+  // Hermes ships native command approval — we pin it ON and mirror the decision
+  // into the overlay audit log so approvals/overrides are visible centrally.
+  tools: {
+    allow: ["read_file", "search_index", "web_fetch"],
+    hitlRequired: ["shell", "write_file"],
+    deny: ["raw_socket", "package_install"],
+    commandApproval: {
+      enabled: true,                         // Hermes-native allowlist stays on
+      surfaceToOverlay: true,                // approvals emit to the control plane
+    },
+    auditLog: "~/.hermes/logs/toolcalls.jsonl",
+  },
+
+  // --- Policy: same shared OPA bundle ---
+  policy: {
+    engine: "opa",
+    endpoint: "http://127.0.0.1:8181/v1/data/janus/agent",
+    mode: "blocking",
+    emitDecisions: true,
+  },
+
+  // --- Autonomy ladder ---
+  autonomy: {
+    default: "act-and-log",
+    overrides: {
+      "shell":     "approve-to-act",
+      "read_only": "autonomous",
+    },
+  },
+
+  // --- Memory: provider choice is a RESIDENCY decision in Hermes ---
+  // state.db (FTS5 episodic log) is always local; the pluggable provider is
+  // where data can leave the box. Janus rule: local providers only, no cloud
+  // memory (mem0 Cloud / Supermemory etc. are denied) until residency is signed off.
+  memory: {
+    episodicLog: "~/.hermes/state.db",       // built-in FTS5 session log, local
+    provider: "sqlite-vec-local",            // vector memory stays on-box
+    deniedProviders: ["mem0-cloud", "supermemory", "byterover"],
+    scope: ["agentId", "session", "scenario"],
+    sessionTTL: "24h",
+    scrubOnExpiry: true,
+    encryptAtRest: true,
+  },
+
+  // --- Guardrails ---
+  guardrails: {
+    promptInjection: { detect: true, action: "escalate" },
+    outputValidation: true,
+    piiRedactionInLogs: true,
+  },
+
+  // --- Telemetry ---
+  telemetry: {
+    otelEndpoint: "http://127.0.0.1:4318",
+    spanAttributes: ["agentId", "harness", "tool", "argsRedacted", "durationMs", "outcome"],
+    threatMapping: "mitre-atlas",
+    costTracking: true,
+  },
+
+  // --- Cron + dead-man's switch ---
+  cron: {
+    enabled: true,
+    maxConcurrentRuns: 2,
+    sessionRetention: "24h",
+    runLog: { maxBytes: 1048576, maxFiles: 10 },
+    deadMansSwitch: {
+      url: "http://127.0.0.1:9091/heartbeat/hermes",
+      graceMinutes: 15,
+    },
+  },
+
+  agents: {
+    defaults: {
+      heartbeat: { every: "30m", target: "last" },
+    },
+  },
+
+  // --- Supply-chain self-hygiene ---
+  supplyChain: {
+    lockfilePinning: true,
+    scanOnUpdate: true,
+    watchPaths: ["~/.hermes/hermes.json", "~/.hermes/state.db"],
+  },
+}

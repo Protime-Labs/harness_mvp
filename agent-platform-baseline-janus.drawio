@@ -1,0 +1,332 @@
+<mxfile host="app.diagrams.net" modified="2026-07-14T00:00:00.000Z" agent="Claude" version="24.0.0" type="device">
+  <diagram id="p1-topology" name="1 · Solution Topology + Janus Overlay">
+    <mxGraphModel dx="1600" dy="1000" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1060" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="t1" value="&lt;b&gt;Docker-Hosted Personal Agent Environment — Baseline Topology (Janus / Agentic Overlay Aligned)&lt;/b&gt;&lt;br&gt;Genericized from reference platform · placeholders in {BRACES} · all findings remediated to target state" style="text;html=1;fontSize=15;fontColor=#1F3864;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="8" width="1000" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="&lt;b&gt;Legend&lt;/b&gt;&lt;br&gt;Blue = platform service · Green = tenant runtime · Purple = Janus overlay control plane&lt;br&gt;Amber = external dependency · Dashed = control plane · Solid = data plane" style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=10;align=left;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="8" width="430" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="laneA" value="INTERNET / CLIENTS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B0BEC5;verticalAlign=top;align=left;fontColor=#1F3864;fontStyle=1;fontSize=12;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="78" width="1520" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="clientUI" value="&lt;b&gt;Operator Console / Tenant Web UI&lt;/b&gt;&lt;br&gt;{APP_DOMAIN} (iframe + token)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="110" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="msgUsers" value="&lt;b&gt;Messaging Channels&lt;/b&gt;&lt;br&gt;Telegram bot / WhatsApp group / {CHANNEL}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="110" width="250" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="serverless" value="&lt;b&gt;Serverless Functions / Automations&lt;/b&gt;&lt;br&gt;call local inference via authenticated edge" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="640" y="110" width="270" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="laneB" value="TLS EDGE — nginx :80/443 (rate limits · CSP frame-ancestors {APP_DOMAIN} · LE certs)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B0BEC5;verticalAlign=top;align=left;fontColor=#1F3864;fontStyle=1;fontSize=12;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="202" width="1520" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="v1" value="&lt;b&gt;provision.{DOMAIN}&lt;/b&gt;&lt;br&gt;→ provisioner API (rate-limited)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="234" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="v2" value="&lt;b&gt;{tenant}.agents.{DOMAIN}&lt;/b&gt; (wildcard cert)&lt;br&gt;auth_request /_resolve = auth gate + port directory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="234" width="330" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="v3" value="&lt;b&gt;llm.{DOMAIN}&lt;/b&gt;&lt;br&gt;bearer gate → LLM auth proxy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="720" y="234" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="laneC" value="HOST — {HOST_ID} · Ubuntu 24.04 LTS · UFW default-deny" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B0BEC5;verticalAlign=top;align=left;fontColor=#1F3864;fontStyle=1;fontSize=12;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="326" width="1520" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="prov" value="&lt;b&gt;Provisioner API&lt;/b&gt;&lt;br&gt;127.0.0.1:8000 (loopback)&lt;br&gt;lifecycle · port directory · auto-start" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="362" width="240" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="tok" value="&lt;b&gt;Token Store&lt;/b&gt;&lt;br&gt;BYOK + gateway tokens&lt;br&gt;(survives re-image)" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;boundedLbl=1;" vertex="1" parent="1">
+          <mxGeometry x="90" y="460" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="llmproxy" value="&lt;b&gt;LLM Auth Proxy 127.0.0.1:11435&lt;/b&gt;&lt;br&gt;bearer token + model allowlist&lt;br&gt;&lt;b&gt;Janus mandate: no unauthenticated public bind&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#B85450;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="362" width="270" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="ollama" value="&lt;b&gt;Local Inference (Ollama :11434)&lt;/b&gt;&lt;br&gt;{LOCAL_MODEL} pinned · {GPU_24GB}&lt;br&gt;flash attn · q8_0 KV · KEEP_ALIVE=-1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="458" width="270" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="overlay" value="JANUS AGENTIC OVERLAY — CONTROL PLANE (governs every harness identically)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3EBF7;strokeColor=#9673A6;verticalAlign=top;align=left;fontColor=#5E35B1;fontStyle=1;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="660" y="352" width="880" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="opa" value="&lt;b&gt;OPA PDP :8181&lt;/b&gt;&lt;br&gt;policy-as-code, blocking&lt;br&gt;decisions emitted as telemetry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="680" y="386" width="250" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="otel" value="&lt;b&gt;OTel Collector :4318&lt;/b&gt;&lt;br&gt;span per tool/MCP call:&lt;br&gt;agentId · tool · argsRedacted · outcome" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="960" y="386" width="270" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="reg" value="&lt;b&gt;Agent Registry :18791&lt;/b&gt;&lt;br&gt;inventory: agent · model tier · tool grants&lt;br&gt;(= blast-radius baseline)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="386" width="260" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="hitl" value="&lt;b&gt;HITL Approval Queue&lt;/b&gt;&lt;br&gt;approve-to-act gate — server-side&lt;br&gt;(DB triggers · kill switch · rate cap)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="680" y="472" width="250" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="dms" value="&lt;b&gt;Dead-Man's Switch :9091&lt;/b&gt;&lt;br&gt;push liveness for cron /&lt;br&gt;unattended runs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="960" y="472" width="270" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="meter" value="&lt;b&gt;Cost / Spend Metering&lt;/b&gt;&lt;br&gt;per-tenant token + $ ceilings&lt;br&gt;(closes metering blind spot)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="472" width="260" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="laneD" value="TENANT RUNTIME — docker user-defined bridge agent-net · host.docker.internal alias" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B0BEC5;verticalAlign=top;align=left;fontColor=#1F3864;fontStyle=1;fontSize=12;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="618" width="1520" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="cbox" value="agent-{TENANT_ID} · image agent-runtime:stable · 2 GB / 1 vCPU / pids 256 · read-only rootfs · cap-drop ALL · no-new-privileges · non-root" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#82B366;verticalAlign=top;align=left;fontColor=#33691E;fontStyle=1;fontSize=10;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="70" y="652" width="800" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="gw" value="&lt;b&gt;Gateway :18789&lt;/b&gt;&lt;br&gt;agent runtime + WS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="90" y="692" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="ttyd" value="&lt;b&gt;ttyd :18792&lt;/b&gt;&lt;br&gt;web terminal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="280" y="692" width="140" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="mcp" value="&lt;b&gt;MCP Sidecar 127.0.0.1:18790&lt;/b&gt;&lt;br&gt;{N_TOOLS} tool modules, loopback only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="440" y="692" width="220" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="br" value="&lt;b&gt;Channel Bridge :18795&lt;/b&gt;&lt;br&gt;listener · /qr · /health" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="680" y="692" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="vol" value="&lt;b&gt;Named volume → /home/oc/.openclaw&lt;/b&gt; — only writable persistent path (SEC-09 scope boundary)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="90" y="768" width="380" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="skills" value="&lt;b&gt;{N_SKILLS} skills + agent context&lt;/b&gt; — image is source of truth, force-copied every boot; hash change archives sessions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="490" y="768" width="360" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="scaleNote" value="&lt;b&gt;× N tenants&lt;/b&gt;&lt;br&gt;loopback port pairs from :19000&lt;br&gt;(2N = ttyd · 2N+1 = gateway)&lt;br&gt;beyond cap → {OVERFLOW_HOST} provisioner" style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=10;align=left;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="890" y="660" width="290" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="autoNote" value="&lt;b&gt;Graded autonomy ladder&lt;/b&gt;&lt;br&gt;suggest → approve-to-act → act-and-log → autonomous&lt;br&gt;&lt;br&gt;Messaging egress pinned at &lt;b&gt;approve-to-act&lt;/b&gt;: no skill sends directly — queue-for-approval only, enforced server-side in the state backend" style="shape=note;whiteSpace=wrap;html=1;fillColor=#F3EBF7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="660" width="340" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="laneE" value="EXTERNAL SERVICES" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B0BEC5;verticalAlign=top;align=left;fontColor=#1F3864;fontStyle=1;fontSize=12;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="870" width="1520" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="&lt;b&gt;State Backend — {STATE_DB}&lt;/b&gt; (Postgres + RLS)&lt;br&gt;Janus target: per-tenant scoped credentials — no shared service-role key in containers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="904" width="360" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="llmapi" value="&lt;b&gt;Frontier LLM API — {PLATFORM_LLM}&lt;/b&gt;&lt;br&gt;platform key (pinned default tier) or BYOK (allowlisted models)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="904" width="330" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="repo" value="&lt;b&gt;Config Repo (git) — {CONFIG_REPO}&lt;/b&gt;&lt;br&gt;branch user-{TENANT_ID} · workspace auto-sync every 600 s · audit mirror" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="840" y="904" width="360" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="clientUI" target="v1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" value="iframe + #token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="clientUI" target="v2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="serverless" target="v3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="v1" target="prov"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" value="auth_request /_resolve" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#9673A6;dashed=1;" edge="1" parent="1" source="v2" target="prov"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="v3" target="llmproxy"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="llmproxy" target="ollama"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" value="docker run :stable (hardened flags)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#9673A6;dashed=1;" edge="1" parent="1" source="prov" target="cbox"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" value="register" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#9673A6;dashed=1;" edge="1" parent="1" source="prov" target="reg"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="190" y="342" /><mxPoint x="1390" y="342" /></Array></mxGeometry></mxCell>
+        <mxCell id="e10" value="proxy :19000+2N / 2N+1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="v2" target="gw"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" value="channel traffic" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;startArrow=classic;" edge="1" parent="1" source="msgUsers" target="br"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="475" y="196" /><mxPoint x="640" y="196" /><mxPoint x="640" y="330" /><mxPoint x="765" y="612" /></Array></mxGeometry></mxCell>
+        <mxCell id="e12" value="curl per skill" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="gw" target="mcp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" value="policy check pre-tool" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#9673A6;dashed=1;" edge="1" parent="1" source="mcp" target="opa"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" value="queue writes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#9673A6;dashed=1;" edge="1" parent="1" source="mcp" target="hitl"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e15" value="scoped creds, tenant-filtered" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="mcp" target="db"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="gw" target="llmapi"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e17" value="host.docker.internal:11434" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="cbox" target="ollama"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e18" value="auto-sync 600 s" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#9673A6;dashed=1;" edge="1" parent="1" source="cbox" target="repo"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e19" value="spans (all processes)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#9673A6;dashed=1;" edge="1" parent="1" source="cbox" target="otel"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1095" y="612" /></Array></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="p2-hardware" name="2 · Hardware &amp; Capacity Baseline">
+    <mxGraphModel dx="1600" dy="1000" grid="0" page="1" pageWidth="1600" pageHeight="1000">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="h_t" value="&lt;b&gt;Hardware &amp;amp; Capacity Baseline — Host, GPU, Tenant Pool, Client&lt;/b&gt;&lt;br&gt;Stack reads bottom-up: physical → reserved → GPU plane → tenant pool → overflow" style="text;html=1;fontSize=15;fontColor=#1F3864;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="900" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="h_over" value="&lt;b&gt;OVERFLOW&lt;/b&gt; — provisioner OVERFLOW_HOST → {HOST_ID_2}:8000 (horizontal scale path; identical baseline per host)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="560" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="h_pool" value="&lt;b&gt;TENANT POOL — N × hardened containers&lt;/b&gt;&lt;br&gt;each: 2 GB RAM hard (≈0.6 GB typical) · 1 vCPU · ~1.5 GB volume · 2 loopback ports&lt;br&gt;at N=50: 100 GB RAM hard · 50 vCPU (deliberate ~1:1 oversubscription) · ~75 GB disk · ports 19000–19100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="170" width="560" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="h_gpu" value="&lt;b&gt;GPU PLANE (host-shared, not per-tenant)&lt;/b&gt;&lt;br&gt;{LOCAL_MODEL} pinned ≈10 GB VRAM · KEEP_ALIVE=-1 · flash attention · q8_0 KV · NUM_PARALLEL=2&lt;br&gt;≈14 GB headroom on a 24 GB-class card (second ~7–8 GB model possible if MAX_LOADED_MODELS raised)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="290" width="560" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="h_res" value="&lt;b&gt;RESERVED&lt;/b&gt; — OS + nginx + provisioner + LLM auth proxy + Janus overlay plane (OPA / OTel / registry / DMS) ≈ 8–10 GB RAM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="400" width="560" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="h_hw" value="&lt;b&gt;PHYSICAL — {HOST_ID} bare-metal, Ubuntu 24.04 LTS&lt;/b&gt;&lt;br&gt;CPU ≥ 48 threads · RAM ≥ 128 GB (no swap) · GPU 24 GB-class ({GPU_MODEL})&lt;br&gt;Disk: ≥ 200 GB NVMe (OS · Docker images · volumes) + ≥ 1 TB bulk mount (model store, OLLAMA_MODELS)&lt;br&gt;Docker Engine current-stable · UFW default-deny · systemd-managed services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F7FA;strokeColor=#1F3864;fontSize=11;align=left;spacing=8;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="60" y="480" width="560" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="h_n1" value="&lt;b&gt;Tenant ceiling formula&lt;/b&gt;&lt;br&gt;N_max = floor( (RAM_total − reserve) / RAM_per_tenant )&lt;br&gt;128 GB host ⇒ (128 − 10) / 2 ≈ &lt;b&gt;50 tenants hard cap&lt;/b&gt;&lt;br&gt;Typical load ≈ 0.6 GB/tenant ⇒ ~30 GB at cap (comfortable)&lt;br&gt;First soft bottleneck: CPU under simultaneous heavy sessions" style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="680" y="90" width="430" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="h_n2" value="&lt;b&gt;Right-sizing option&lt;/b&gt;&lt;br&gt;Observed steady state ≈ 0.6 GB → dropping --memory to 1.5 GB raises N_max ≈ 78 before a second host. Trade-off: less burst headroom per agent session." style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="680" y="235" width="430" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="h_n3" value="&lt;b&gt;Image hygiene (Janus supply-chain control)&lt;/b&gt;&lt;br&gt;Retain :stable + current :latest + last 2–3 immutable SHA tags only.&lt;br&gt;Monthly cron: docker image prune + builder prune.&lt;br&gt;Reference host showed ~27 GB reclaimable from tag sprawl — budget for it." style="shape=note;whiteSpace=wrap;html=1;fillColor=#F3EBF7;strokeColor=#9673A6;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="680" y="355" width="430" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="h_n4" value="&lt;b&gt;Host service layer (systemd)&lt;/b&gt;&lt;br&gt;docker.service · nginx.service (:80/443) · provisioner (127.0.0.1:8000, Restart=always) · ollama (:11434, GPU drop-ins) · &lt;b&gt;llm auth proxy (:11435 — the ONLY unit permitted on that port; no-auth variants disabled/masked)&lt;/b&gt; · overlay units: opa · otel-collector · agent-registry · dms&lt;br&gt;/opt/{PLATFORM_DIR} is its own git repo — diff blob hashes vs source repo before every deploy." style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="680" y="490" width="430" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="h_n5" value="&lt;b&gt;Client baseline (thin by design)&lt;/b&gt;&lt;br&gt;Web: modern browser, WebSocket + iframe (CSP frame-ancestors locked to {APP_DOMAIN}); session token delivered in URL fragment, never logged.&lt;br&gt;Messaging: Telegram bot token per tenant (volume .env) or WhatsApp QR pairing via bridge /qr.&lt;br&gt;No local install; terminal access via ttyd only, behind auth_request." style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="90" width="420" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="h_n6" value="&lt;b&gt;GPU sizing rule&lt;/b&gt;&lt;br&gt;VRAM_needed = model_resident + (ctx_kv × NUM_PARALLEL) + headroom.&lt;br&gt;Local model handles tier-0 routing/triage; frontier API handles reasoning — local inference is a cost lever, not a capacity constraint per tenant." style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="265" width="420" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="h_n7" value="&lt;b&gt;Storage layout&lt;/b&gt;&lt;br&gt;Root NVMe: OS + /var/lib/docker (images, volumes, build cache).&lt;br&gt;Bulk mount: model store only (OLLAMA_MODELS relocated) — keeps model pulls off the root disk.&lt;br&gt;Token store on host path that survives container re-image ( /data/provisioner/tokens.json equivalent )." style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="410" width="420" height="150" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="p3-image" name="3 · Image, Runtime &amp; Boot Baseline">
+    <mxGraphModel dx="1600" dy="1000" grid="0" page="1" pageWidth="1600" pageHeight="1060">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="i_t" value="&lt;b&gt;Docker Image, Hardened Runtime Spec &amp;amp; Boot Sequence&lt;/b&gt;&lt;br&gt;Canonical image agent-runtime (single-stage, precompiled artifacts, ≈1.8 GB)" style="text;html=1;fontSize=15;fontColor=#1F3864;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="900" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="i_lt" value="IMAGE LAYER STACK (top = last layer)" style="text;html=1;fontSize=12;fontStyle=1;fontColor=#1F3864;" vertex="1" parent="1">
+          <mxGeometry x="60" y="66" width="420" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="il9" value="entrypoint.sh (boot orchestrator) + operator CLI /usr/local/bin/{CLI} · USER node · HOME=/home/oc · EXPOSE 18789 / 18792 / 18795" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="94" width="440" height="52" as="geometry" /></mxCell>
+        <mxCell id="il8" value="openclaw.json.template — versioned config template; token sed-injected at boot (template hash drives config invalidation)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="150" width="440" height="52" as="geometry" /></mxCell>
+        <mxCell id="il7" value="/app/workspace-root — agent context files: CLAUDE.md · AGENTS.md · SOUL.md · TOOLS.md · USER.md · HEARTBEAT.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="206" width="440" height="52" as="geometry" /></mxCell>
+        <mxCell id="il6" value="/app/workspace-skills — {N_SKILLS} skills (source of truth; force-copied into workspace every start)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="262" width="440" height="52" as="geometry" /></mxCell>
+        <mxCell id="il5" value="/app/channel-bridge — precompiled dist/ (group/DM listener)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="318" width="440" height="44" as="geometry" /></mxCell>
+        <mxCell id="il4" value="/app/mcp-server — precompiled dist/ (Dockerfile never compiles; build.sh compiles in throwaway container)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="366" width="440" height="52" as="geometry" /></mxCell>
+        <mxCell id="il3" value="Agent runtime — npm install -g openclaw@{PINNED_VERSION} + channel plugin (version pinned, never floating)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="422" width="440" height="52" as="geometry" /></mxCell>
+        <mxCell id="il2" value="System deps — git · curl · gettext-base · ca-certificates (minimal)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="478" width="440" height="44" as="geometry" /></mxCell>
+        <mxCell id="il1" value="Base — node:24-bookworm-slim" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F7FA;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="526" width="440" height="40" as="geometry" /></mxCell>
+        <mxCell id="i_hard" value="&lt;b&gt;HARDENED RUNTIME SPEC (per tenant — identical in provisioner code and live inspect)&lt;/b&gt;&lt;br&gt;&lt;br&gt;--memory 2g (swap ceiling 4g) · --cpus 1.0 · --pids-limit 256&lt;br&gt;--read-only rootfs · --cap-drop ALL (no cap-add) · --security-opt no-new-privileges&lt;br&gt;tmpfs /tmp 100M + /home/oc/.npm 50M — noexec,nosuid,nodev&lt;br&gt;USER node (non-root) · restart unless-stopped (always-on, reboot-safe)&lt;br&gt;network: user bridge agent-net + host-gateway alias (no host net, no docker.sock)&lt;br&gt;ports: 127.0.0.1 loopback pairs only — nothing published publicly&lt;br&gt;volume: named per-tenant → /home/oc/.openclaw (sole writable persistent path)&lt;br&gt;&lt;br&gt;&lt;b&gt;Janus additions for target environment:&lt;/b&gt;&lt;br&gt;· per-container egress allowlist (default-deny outbound at host firewall/proxy)&lt;br&gt;· image signature verification at spawn (cosign or equivalent)&lt;br&gt;· default seccomp profile explicitly asserted (not disabled)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;align=left;spacing=10;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="540" y="94" width="480" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="i_env" value="&lt;b&gt;Injected environment contract (names only — values from host .env + token store)&lt;/b&gt;&lt;br&gt;OPENCLAW_TOKEN (fresh token_hex(24) per provision) · ANTHROPIC_API_KEY (BYOK else platform) · PLATFORM_KEY_HASH · GEMINI_API_KEY · MCP_TOKEN · {STATE_DB}_URL / scoped tenant credential · TENANT_USER_ID · CONFIG_REPO / BRANCH=user-{TENANT_ID} / GIT_PAT&lt;br&gt;&lt;b&gt;Janus rule:&lt;/b&gt; no shared service-role secrets in tenant containers — scoped JWT or host-side credential proxy." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=8;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="540" y="448" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="i_bt" value="ENTRYPOINT BOOT SEQUENCE" style="text;html=1;fontSize=12;fontStyle=1;fontColor=#1F3864;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="66" width="420" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="b1" value="&lt;b&gt;1 · Token + template-hash sync&lt;/b&gt; — stale token clears config; template change regenerates it (device pairings preserved); model pinned when PLATFORM_KEY_HASH matches" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="94" width="480" height="62" as="geometry" /></mxCell>
+        <mxCell id="b2" value="&lt;b&gt;2 · Clone/pull {CONFIG_REPO}&lt;/b&gt; branch user-{TENANT_ID} (PAT auth); normalize branch + upstream tracking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="168" width="480" height="52" as="geometry" /></mxCell>
+        <mxCell id="b3" value="&lt;b&gt;3 · Force-copy skills + context (image always wins)&lt;/b&gt;; skill-hash change → archive prior sessions + memory to archive/&amp;lt;stamp&amp;gt;/ — fresh context, nothing deleted (SEC-09)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="232" width="480" height="62" as="geometry" /></mxCell>
+        <mxCell id="b4" value="&lt;b&gt;4 · Start MCP sidecar 127.0.0.1:18790&lt;/b&gt; — hard 5 s bind gate; abort boot if the tool plane fails (fail-closed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="306" width="480" height="52" as="geometry" /></mxCell>
+        <mxCell id="b5" value="&lt;b&gt;5 · Auto-save loop&lt;/b&gt; — commit + push workspace to config repo every 600 s (evidence trail)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="370" width="480" height="52" as="geometry" /></mxCell>
+        <mxCell id="b6" value="&lt;b&gt;6 · Start channel bridge :18795 + agent gateway :18789&lt;/b&gt; — steady state: 4 processes, ≈0.6 GB RAM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="434" width="480" height="52" as="geometry" /></mxCell>
+        <mxCell id="be1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="b1" target="b2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="be2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="b2" target="b3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="be3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="b3" target="b4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="be4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="b4" target="b5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="be5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="b5" target="b6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i_pt" value="BUILD → PROMOTION PIPELINE (supply-chain control: provisioner spawns :stable ONLY)" style="text;html=1;fontSize=12;fontStyle=1;fontColor=#1F3864;" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="900" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="pp1" value="&lt;b&gt;build.sh&lt;/b&gt;&lt;br&gt;compile in throwaway container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;" vertex="1" parent="1"><mxGeometry x="60" y="672" width="200" height="66" as="geometry" /></mxCell>
+        <mxCell id="pp2" value="&lt;b&gt;tag :{git-sha}&lt;/b&gt;&lt;br&gt;immutable rollback target" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;" vertex="1" parent="1"><mxGeometry x="300" y="672" width="200" height="66" as="geometry" /></mxCell>
+        <mxCell id="pp3" value="&lt;b&gt;:latest&lt;/b&gt;&lt;br&gt;smoke-test target" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;" vertex="1" parent="1"><mxGeometry x="540" y="672" width="180" height="66" as="geometry" /></mxCell>
+        <mxCell id="pp4" value="&lt;b&gt;:stable&lt;/b&gt;&lt;br&gt;manual promote (or --promote for pre-validated paths) — the only tag the provisioner spawns" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=10;" vertex="1" parent="1"><mxGeometry x="760" y="662" width="260" height="86" as="geometry" /></mxCell>
+        <mxCell id="pp5" value="&lt;b&gt;sync-configs mirror&lt;/b&gt;&lt;br&gt;skills + context → audit repo main (best-effort)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1060" y="672" width="230" height="66" as="geometry" /></mxCell>
+        <mxCell id="ppe1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="pp1" target="pp2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ppe2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="pp2" target="pp3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ppe3" value="promote" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="pp3" target="pp4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ppe4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;dashed=1;" edge="1" parent="1" source="pp4" target="pp5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i_sc" value="&lt;b&gt;Janus supply-chain gates on this pipeline (Shai-Hulud lesson — the overlay polices itself)&lt;/b&gt;&lt;br&gt;· dependency lockfile pinning, scan-on-build (npm supply-chain detector) before any tag&lt;br&gt;· image signing at build, signature verify at provisioner spawn&lt;br&gt;· rollback = retag prior SHA as :stable + recycle containers (no rebuild under incident)&lt;br&gt;· config/template/skill hashes = tamper-evidence — out-of-band change on host alerts the overlay" style="shape=note;whiteSpace=wrap;html=1;fillColor=#F3EBF7;strokeColor=#9673A6;fontSize=10;align=left;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="770" width="960" height="130" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="p4-controls" name="4 · Janus Control Mapping">
+    <mxGraphModel dx="1600" dy="1000" grid="0" page="1" pageWidth="1600" pageHeight="1000">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c_t" value="&lt;b&gt;Baseline Mechanism → Janus Overlay Control → Threat Family (OWASP Agentic AI / MITRE ATLAS)&lt;/b&gt;&lt;br&gt;Govern the category, not the brand — mappings survive harness renames and forks" style="text;html=1;fontSize=15;fontColor=#1F3864;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="1100" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="ch1" value="BASELINE MECHANISM (as-built)" style="text;html=1;fontSize=12;fontStyle=1;fontColor=#1F3864;align=center;" vertex="1" parent="1"><mxGeometry x="60" y="64" width="430" height="22" as="geometry" /></mxCell>
+        <mxCell id="ch2" value="JANUS OVERLAY CONTROL" style="text;html=1;fontSize=12;fontStyle=1;fontColor=#5E35B1;align=center;" vertex="1" parent="1"><mxGeometry x="560" y="64" width="430" height="22" as="geometry" /></mxCell>
+        <mxCell id="ch3" value="THREAT FAMILY MITIGATED" style="text;html=1;fontSize=12;fontStyle=1;fontColor=#D79B00;align=center;" vertex="1" parent="1"><mxGeometry x="1060" y="64" width="480" height="22" as="geometry" /></mxCell>
+        <mxCell id="r1a" value="read-only rootfs · cap-drop ALL · no-new-privileges · pids-limit · non-root · noexec tmpfs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="94" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r1b" value="Containment / blast-radius baseline — defense-in-depth layer 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="94" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r1c" value="ATLAS: execution / privilege-escalation families; container breakout" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="94" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="r2a" value="MCP sidecar loopback-only (:18790) · per-tenant scoped credential · explicit tenant filter in every handler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="162" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r2b" value="SEC-07 — safe tool use: approved interfaces only, service identity per call" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="162" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r2c" value="OWASP Agentic: tool misuse · excessive agency · cross-tenant data access" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="162" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="r3a" value="No skill ever sends messages — queue-for-approval RPC, DB triggers, kill switch, rate caps (server-side)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="230" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r3b" value="Graded autonomy ladder — messaging egress pinned at approve-to-act (HITL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="230" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r3c" value="Covert C2 over messaging egress · unsupervised outreach · reputational actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="230" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="r4a" value="Skill behavioral contract: declared trigger · hard tool cap per session · mandatory outcome logging" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="298" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r4b" value="SEC-08 — model &amp;amp; prompt guardrails: bounded task scope, output validated before action" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="298" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r4c" value="Prompt injection · runaway loops · unsafe instruction execution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="298" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="r5a" value="Volume-scoped state · skill-hash session archiving (archive, never delete) · per-tenant workspace branch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="366" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r5b" value="SEC-09 — memory isolation &amp;amp; retention: scope by tenant/session, TTL + scrub policy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="366" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r5c" value="Memory poisoning · cross-scenario / cross-tenant context leakage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="366" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="r6a" value="Pinned runtime version · precompiled dist · template/skill hash invalidation · :stable-only spawn · image signing + scan-on-build" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="434" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r6b" value="Supply-chain self-hygiene — the overlay applies to itself what it enforces elsewhere" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="434" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r6c" value="Skill / dependency supply chain (Shai-Hulud-class npm compromise) · tampered configs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="434" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="r7a" value="OPA PDP between agent and tool plane — blocking mode, decision log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="502" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r7b" value="Policy-as-code — allow/deny auditable, one bundle across all harnesses" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="502" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r7c" value="Excessive agency · shadow tool grants · policy drift between agents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="502" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="r8a" value="OTel span per tool/MCP call — agentId · tool · redacted args · duration · outcome; git auto-sync as evidence trail" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="570" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r8b" value="Observability — OTel-once / two-consumers (ops + detection engineering)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="570" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r8c" value="Detection: anomalous call patterns mapped to ATLAS technique families" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="570" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="r9a" value="LLM auth proxy mandatory (bearer + model allowlist) · loopback-only publishing · UFW default-deny · per-container egress allowlist" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="638" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r9b" value="Controlled ingress / egress (SEC-15/16-class) — no unauthenticated inference surface" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="638" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r9c" value="Resource theft (free inference) · credential sprawl · data exfiltration paths" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="638" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="r10a" value="Agent registry inventory + dead-man's switch on cron/unattended runs + spend metering per tenant" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="60" y="706" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r10b" value="Fleet management &amp;amp; rogue-agent IR — inventory is the precondition for response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="560" y="706" width="430" height="56" as="geometry" /></mxCell>
+        <mxCell id="r10c" value="Cron persistence · shadow deployment · silent failure · uncapped spend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=10;align=left;spacing=6;" vertex="1" parent="1"><mxGeometry x="1060" y="706" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="ce1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r1a" target="r1b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce1b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r1b" target="r1c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r2a" target="r2b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce2b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r2b" target="r2c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r3a" target="r3b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce3b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r3b" target="r3c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r4a" target="r4b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce4b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r4b" target="r4c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r5a" target="r5b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce5b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r5b" target="r5c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r6a" target="r6b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce6b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r6b" target="r6c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r7a" target="r7b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce7b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r7b" target="r7c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r8a" target="r8b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce8b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r8b" target="r8c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r9a" target="r9b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce9b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r9b" target="r9c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r10a" target="r10b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce10b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="r10b" target="r10c"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="p5-client" name="5 · Client &amp; Channel Configuration">
+    <mxGraphModel dx="1600" dy="1000" grid="0" page="1" pageWidth="1600" pageHeight="900">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="k_t" value="&lt;b&gt;Client &amp;amp; Channel Configuration — Web Session Flow, Messaging Pairing, Key Management&lt;/b&gt;" style="text;html=1;fontSize=15;fontColor=#1F3864;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="1000" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="k1" value="&lt;b&gt;Browser client&lt;/b&gt;&lt;br&gt;{APP_DOMAIN} embeds agent UI via iframe&lt;br&gt;session token in URL fragment (never logged)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1"><mxGeometry x="60" y="70" width="280" height="80" as="geometry" /></mxCell>
+        <mxCell id="k2" value="&lt;b&gt;nginx wildcard vhost&lt;/b&gt;&lt;br&gt;{tenant}.agents.{DOMAIN}&lt;br&gt;CSP frame-ancestors → {APP_DOMAIN} + localhost dev · rate zone burst 50" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1"><mxGeometry x="400" y="70" width="300" height="80" as="geometry" /></mxCell>
+        <mxCell id="k3" value="&lt;b&gt;auth_request /_resolve&lt;/b&gt;&lt;br&gt;provisioner validates token, returns X-Ttyd-Port / X-Gateway-Port,&lt;br&gt;auto-starts exited containers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="760" y="70" width="300" height="80" as="geometry" /></mxCell>
+        <mxCell id="k4" value="&lt;b&gt;Tenant container&lt;/b&gt;&lt;br&gt;ttyd 127.0.0.1:19000+2N (terminal)&lt;br&gt;gateway WS 127.0.0.1:19000+2N+1 (24 h read timeout)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;" vertex="1" parent="1"><mxGeometry x="1120" y="70" width="320" height="80" as="geometry" /></mxCell>
+        <mxCell id="ke1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="k1" target="k2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ke2" value="every request" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#9673A6;dashed=1;" edge="1" parent="1" source="k2" target="k3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ke3" value="proxy on allow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=9;strokeColor=#546E7A;" edge="1" parent="1" source="k3" target="k4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="k5" value="&lt;b&gt;Messaging client — Telegram&lt;/b&gt;&lt;br&gt;per-tenant bot token stored in volume .env, synced to config at boot; DM policy per platform pairing model" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1"><mxGeometry x="60" y="210" width="320" height="80" as="geometry" /></mxCell>
+        <mxCell id="k6" value="&lt;b&gt;Messaging client — WhatsApp&lt;/b&gt;&lt;br&gt;QR pairing via bridge /qr endpoint; group listener writes inbound to state backend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F3864;fontSize=11;" vertex="1" parent="1"><mxGeometry x="420" y="210" width="320" height="80" as="geometry" /></mxCell>
+        <mxCell id="k7" value="&lt;b&gt;Channel bridge :18795&lt;/b&gt;&lt;br&gt;inbound only by default —&lt;br&gt;ALL outbound messages route through the HITL approval queue (approve-to-act)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;" vertex="1" parent="1"><mxGeometry x="800" y="210" width="320" height="80" as="geometry" /></mxCell>
+        <mxCell id="ke4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="k5" target="k7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ke5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#546E7A;" edge="1" parent="1" source="k6" target="k7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="k8" value="&lt;b&gt;Key management — BYOK vs platform&lt;/b&gt;&lt;br&gt;&lt;br&gt;PLATFORM_KEY_HASH comparison at boot detects key type:&lt;br&gt;· Platform key → model &lt;b&gt;pinned&lt;/b&gt; to default cost tier ({DEFAULT_MODEL})&lt;br&gt;· BYOK → free model choice &lt;b&gt;within allowlist&lt;/b&gt;&lt;br&gt;&lt;br&gt;Model allowlist (placeholder tiers): {haiku-class default} · {sonnet-class} · {opus-class} · {gemini-class} · {gpt-class}&lt;br&gt;&lt;br&gt;Fresh gateway token (token_hex(24)) minted per provision; BYOK + gateway tokens persist in host token store across re-image." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=11;align=left;spacing=10;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="60" y="340" width="520" height="230" as="geometry" /></mxCell>
+        <mxCell id="k9" value="&lt;b&gt;Janus client-plane controls&lt;/b&gt;&lt;br&gt;&lt;br&gt;· Session tokens never appear in logs or spans (redaction rule)&lt;br&gt;· iframe origin lock is a control, not cosmetics — prevents UI embedding by untrusted origins&lt;br&gt;· Per-tenant rate zones at nginx = first-line DoS + abuse throttle&lt;br&gt;· WS gateway sessions emit OTel spans (session start/end, tool activity)&lt;br&gt;· Channel identity binding: one bot token / one paired device per tenant — pairing changes are audit events&lt;br&gt;· Client has NO direct path to MCP sidecar, state backend, or inference — everything transits the gateway" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3EBF7;strokeColor=#9673A6;fontSize=11;align=left;spacing=10;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="620" y="340" width="560" height="230" as="geometry" /></mxCell>
+        <mxCell id="k10" value="&lt;b&gt;Placeholder map (target environment)&lt;/b&gt;&lt;br&gt;{HOST_ID} host name · {HOST_IP} public IP · {DOMAIN} base domain · {APP_DOMAIN} console origin · {TENANT_ID} tenant uuid · {LOCAL_MODEL} pinned GPU model · {GPU_MODEL} 24 GB-class card · {STATE_DB} Postgres+RLS backend · {CONFIG_REPO} private git config repo · {N_TOOLS} MCP tool modules · {N_SKILLS} workspace skills · {PINNED_VERSION} agent runtime version · {OVERFLOW_HOST} secondary provisioner · {PLATFORM_LLM} frontier API provider" style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=10;align=left;spacing=8;" vertex="1" parent="1"><mxGeometry x="60" y="600" width="1120" height="120" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

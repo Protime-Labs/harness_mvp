@@ -1,0 +1,114 @@
+// =============================================================================
+// nemoclaw.json — NemoClaw harness config, Janus / CSO Agentic Overlay aligned
+// Location: ~/.nemoclaw/nemoclaw.json   (JSON5 — comments OK)
+//
+// Same overlay contract as openclaw.json — the schema is deliberately identical
+// so one OPA policy bundle, one OTel pipeline, and one registry cover all three
+// harness families. Only identity, ports, and harness-specific keys differ.
+// =============================================================================
+{
+  // --- Agent registry entry ---
+  identity: {
+    harness: "nemoclaw",
+    agentId: "nemo-worker-01",
+    role: "worker",                          // narrower role → narrower allowlist
+    workspace: "~/.nemoclaw/workspace",
+    registry: "http://127.0.0.1:18791/registry",
+  },
+
+  // --- Model routing: workers stay on cheap tiers; escalation is explicit ---
+  models: {
+    routing: "tiered",
+    tiers: [
+      { name: "t0", model: "gemini-flash-lite", use: "classify/route" },
+      { name: "t1", model: "gemini-flash",      use: "default worker tier" },
+      { name: "t2", model: "claude-haiku-4-5",  use: "escalation only" },
+    ],
+    escalationRequiresReason: true,          // tier jump must log a justification
+    spendCeilingUSDPerDay: 10,
+  },
+
+  // --- Network posture: distinct loopback ports per harness (no collisions) ---
+  network: {
+    gatewayBind: "127.0.0.1:18889",
+    mcpSidecarBind: "127.0.0.1:18890",
+    egress: {
+      mode: "allowlist",
+      allow: ["generativelanguage.googleapis.com"], // workers get minimal egress
+      logDenied: true,
+    },
+  },
+
+  // --- Tool controls: workers are read-heavy, write is gated ---
+  tools: {
+    allow: ["read_file", "search_index"],
+    hitlRequired: ["write_file", "shell"],
+    deny: ["send_message", "raw_socket", "package_install"], // workers don't talk out
+    auditLog: "~/.nemoclaw/logs/toolcalls.jsonl",
+  },
+
+  // --- Policy: same OPA instance, harness passed as input to the policy ---
+  policy: {
+    engine: "opa",
+    endpoint: "http://127.0.0.1:8181/v1/data/janus/agent",
+    mode: "blocking",
+    emitDecisions: true,
+  },
+
+  // --- Autonomy: workers sit one rung lower than the orchestrator by default ---
+  autonomy: {
+    default: "approve-to-act",
+    overrides: {
+      "read_only": "act-and-log",            // reads can proceed, but everything logs
+    },
+  },
+
+  // --- Memory: strictest scope — per-task, short TTL, nothing shared ---
+  memory: {
+    provider: "sqlite-local",
+    scope: ["agentId", "session", "task"],
+    sessionTTL: "8h",                        // workers don't need long memory
+    scrubOnExpiry: true,
+    encryptAtRest: true,
+  },
+
+  // --- Guardrails: identical contract to openclaw.json ---
+  guardrails: {
+    promptInjection: { detect: true, action: "block" }, // workers block, don't escalate
+    outputValidation: true,
+    piiRedactionInLogs: true,
+  },
+
+  // --- Telemetry: same collector, harness field disambiguates ---
+  telemetry: {
+    otelEndpoint: "http://127.0.0.1:4318",
+    spanAttributes: ["agentId", "harness", "tool", "argsRedacted", "durationMs", "outcome"],
+    threatMapping: "mitre-atlas",
+    costTracking: true,
+  },
+
+  // --- Cron + dead-man's switch (own heartbeat slug) ---
+  cron: {
+    enabled: true,
+    maxConcurrentRuns: 1,                    // workers are single-lane
+    sessionRetention: "24h",
+    runLog: { maxBytes: 1048576, maxFiles: 10 },
+    deadMansSwitch: {
+      url: "http://127.0.0.1:9091/heartbeat/nemoclaw",
+      graceMinutes: 15,
+    },
+  },
+
+  agents: {
+    defaults: {
+      heartbeat: { every: "60m", target: "last" }, // workers ping less often
+    },
+  },
+
+  // --- Supply-chain self-hygiene ---
+  supplyChain: {
+    lockfilePinning: true,
+    scanOnUpdate: true,
+    watchPaths: ["~/.nemoclaw/nemoclaw.json"],
+  },
+}

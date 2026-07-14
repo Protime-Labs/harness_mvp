@@ -1,0 +1,125 @@
+// =============================================================================
+// openclaw.json — OpenClaw harness config, Janus / CSO Agentic Overlay aligned
+// Location: ~/.openclaw/openclaw.json   (OpenClaw parses JSON5 — comments OK)
+//
+// Design rule: every section maps to a Janus overlay control:
+//   identity → agent registry | tools → SEC-07 | guardrails → SEC-08
+//   memory → SEC-09 | policy → OPA policy-as-code | telemetry → OTel span schema
+//   autonomy → graded autonomy ladder | supplyChain → Shai-Hulud self-hygiene
+// =============================================================================
+{
+  // --- Agent registry entry (who this agent IS — its blast radius baseline) ---
+  identity: {
+    harness: "openclaw",
+    agentId: "bluey-orchestrator",          // unique, appears on every OTel span
+    role: "orchestrator",                    // role drives the tool allowlist below
+    workspace: "~/.openclaw/workspace",
+    registry: "http://127.0.0.1:18791/registry", // overlay agent inventory endpoint
+  },
+
+  // --- Model routing: 4-tier cost/complexity ladder ---
+  models: {
+    routing: "tiered",
+    tiers: [
+      { name: "t0", model: "gemini-flash-lite", use: "classify/route/cheap" },
+      { name: "t1", model: "gemini-flash",      use: "summarize/extract" },
+      { name: "t2", model: "claude-haiku-4-5",  use: "structured reasoning" },
+      { name: "t3", model: "claude-sonnet-4-6", use: "complex/final synthesis" },
+    ],
+    spendCeilingUSDPerDay: 25,               // hard stop, enforced pre-call
+  },
+
+  // --- Network posture: loopback-only control plane, controlled egress ---
+  network: {
+    gatewayBind: "127.0.0.1:18789",          // control UI never on 0.0.0.0
+    mcpSidecarBind: "127.0.0.1:18790",       // MCP tools loopback-locked
+    egress: {
+      mode: "allowlist",                     // default-deny outbound
+      allow: [
+        "api.anthropic.com",
+        "generativelanguage.googleapis.com",
+        "api.ebay.com",
+        "*.supabase.co",
+      ],
+      logDenied: true,                       // denied egress = detection signal
+    },
+  },
+
+  // --- Tool controls (SEC-07: approved interfaces only) ---
+  tools: {
+    allow: ["read_file", "web_fetch", "mcp:*"],   // baseline for this role
+    hitlRequired: ["shell", "write_file", "send_message", "trade_execute"],
+    deny: ["raw_socket", "sudo", "package_install"], // never callable, logged if attempted
+    auditLog: "~/.openclaw/logs/toolcalls.jsonl",    // full call history for audit
+  },
+
+  // --- Policy-as-code: OPA sits between agent and tool ---
+  policy: {
+    engine: "opa",
+    endpoint: "http://127.0.0.1:8181/v1/data/janus/agent",
+    mode: "blocking",                        // "advisory" while tuning, then block
+    emitDecisions: true,                     // allow/deny decisions become telemetry
+  },
+
+  // --- Graded autonomy ladder (per agent, overridable per tool class) ---
+  // Levels: suggest → approve-to-act → act-and-log → autonomous
+  autonomy: {
+    default: "act-and-log",
+    overrides: {
+      "shell":          "approve-to-act",    // destructive: human in the loop
+      "financial":      "suggest",           // trading agents only propose
+      "read_only":      "autonomous",
+    },
+  },
+
+  // --- Memory isolation & retention (SEC-09) ---
+  memory: {
+    provider: "sqlite-local",                // data stays on-box (residency decision)
+    scope: ["agentId", "session", "scenario"], // no cross-scenario bleed
+    sessionTTL: "24h",
+    scrubOnExpiry: true,                     // wipe, don't just expire
+    encryptAtRest: true,
+  },
+
+  // --- Guardrails (SEC-08: prompt/output boundaries) ---
+  guardrails: {
+    promptInjection: { detect: true, action: "escalate" }, // block-or-escalate on IOA
+    outputValidation: true,                  // validate model output BEFORE tool exec
+    piiRedactionInLogs: true,                // spans carry redacted args only
+  },
+
+  // --- Telemetry: OTel span per tool/MCP call, mapped to threat IDs ---
+  telemetry: {
+    otelEndpoint: "http://127.0.0.1:4318",
+    spanAttributes: ["agentId", "tool", "argsRedacted", "durationMs", "outcome"],
+    threatMapping: "mitre-atlas",            // anomalous patterns → ATLAS technique IDs
+    costTracking: true,                      // tokens/cost per tier at egress proxy
+  },
+
+  // --- Scheduled runs + dead-man's switch ---
+  cron: {
+    enabled: true,
+    maxConcurrentRuns: 2,
+    sessionRetention: "24h",
+    runLog: { maxBytes: 1048576, maxFiles: 10 },
+    deadMansSwitch: {                        // unattended runs must PUSH liveness
+      url: "http://127.0.0.1:9091/heartbeat/openclaw",
+      graceMinutes: 15,                      // silence past grace → alert fires
+    },
+  },
+
+  // --- Heartbeat (correct path: agents.defaults.heartbeat) ---
+  agents: {
+    defaults: {
+      heartbeat: { every: "30m", target: "last" },
+    },
+  },
+
+  // --- Supply-chain self-hygiene (Shai-Hulud lesson: overlay polices itself) ---
+  supplyChain: {
+    lockfilePinning: true,                   // no floating dependency versions
+    scanOnUpdate: true,                      // run detector before adopting updates
+    watchPaths: ["~/.openclaw/openclaw.json", "~/.openclaw/skills/"],
+    // config files are an attack target — alert on out-of-band modification
+  },
+}
